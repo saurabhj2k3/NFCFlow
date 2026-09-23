@@ -54,12 +54,16 @@ export function Sidebar() {
     <aside className="w-60 border-r border-slate-200 bg-white flex flex-col justify-between shrink-0 min-h-screen">
       <div>
         {/* Brand Logo */}
-        <Link href="/dashboard" className="h-14 flex items-center px-4 border-b border-slate-200 hover:opacity-90 transition-opacity">
+        <Link href="/dashboard" className="h-16 flex items-center gap-3 px-4 border-b border-slate-200 hover:opacity-90 transition-opacity">
           <img
             src="/logo.png"
             alt="NFCFlow Logo"
-            className="h-8 w-auto object-contain max-w-[170px]"
+            className="h-10 w-auto object-contain shrink-0"
           />
+          <div className="flex flex-col">
+            <span className="text-base font-extrabold tracking-tight text-slate-900 leading-none">NFCFlow</span>
+            <span className="text-[10px] font-semibold text-blue-600 tracking-wider uppercase mt-0.5">Admin Console</span>
+          </div>
         </Link>
 
         {/* Navigation links */}

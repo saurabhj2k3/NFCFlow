@@ -13,8 +13,12 @@ export const metadata: Metadata = {
   description:
     "Deploy permanent PVC NFC & QR review cards for your business. Switch destinations in real time without reprinting cards.",
   icons: {
-    icon: "/logo.png",
-    shortcut: "/logo.png",
+    icon: [
+      { url: "/favicon.ico" },
+      { url: "/logo.png", type: "image/png" },
+      { url: "/favicon.png", type: "image/png" }
+    ],
+    shortcut: "/favicon.png",
     apple: "/logo.png",
   },
 };

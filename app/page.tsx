@@ -71,12 +71,16 @@ export default function LandingPage() {
     <div className="min-h-screen bg-white text-slate-900 flex flex-col font-sans">
       {/* Navigation */}
       <header className="h-16 border-b border-slate-200 bg-white sticky top-0 z-40 px-6 sm:px-10 flex items-center justify-between">
-        <Link href="/" className="flex items-center hover:opacity-90 transition-opacity">
+        <Link href="/" className="flex items-center gap-2.5 hover:opacity-90 transition-opacity">
           <img
             src="/logo.png"
             alt="NFCFlow Logo"
-            className="h-9 w-auto object-contain"
+            className="h-11 w-auto object-contain"
           />
+          <div className="flex flex-col">
+            <span className="text-lg font-extrabold tracking-tight text-slate-900 leading-none">NFCFlow</span>
+            <span className="text-[10px] font-semibold text-slate-400 tracking-wider uppercase mt-0.5">NFC &amp; QR Review Card</span>
+          </div>
         </Link>
 
         <nav className="hidden md:flex items-center gap-6 text-xs font-medium text-slate-600">
@@ -390,9 +394,10 @@ export default function LandingPage() {
             <img
               src="/logo.png"
               alt="NFCFlow Logo"
-              className="h-6 w-auto object-contain"
+              className="h-8 w-auto object-contain"
             />
-            <span className="text-slate-400">|</span>
+            <span className="font-bold text-slate-800 text-sm">NFCFlow</span>
+            <span className="text-slate-300">|</span>
             <span>Dynamic NFC &amp; QR Review Card Management</span>
           </div>
 

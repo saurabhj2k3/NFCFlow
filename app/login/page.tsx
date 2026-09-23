@@ -69,15 +69,19 @@ function LoginContent() {
     <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       {/* Brand Header */}
       <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
-        <Link href="/" className="inline-block hover:opacity-90 transition-opacity mb-2">
+        <Link href="/" className="inline-flex items-center gap-3 hover:opacity-90 transition-opacity mb-2">
           <img
             src="/logo.png"
             alt="NFCFlow Logo"
-            className="h-12 w-auto object-contain mx-auto"
+            className="h-14 w-auto object-contain"
           />
+          <div className="text-left">
+            <h1 className="text-2xl font-black text-slate-900 tracking-tight leading-tight">NFCFlow</h1>
+            <p className="text-[11px] font-semibold text-blue-600 uppercase tracking-wider">Tap &amp; Review Platform</p>
+          </div>
         </Link>
-        <p className="mt-1 text-xs text-slate-500">
-          Super Admin Console • Tap • Scan • Connect
+        <p className="text-xs text-slate-500">
+          Super Admin Console • Dynamic Routing Engine
         </p>
       </div>
 
