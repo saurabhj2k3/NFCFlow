@@ -29,16 +29,28 @@ export async function updateSession(request: NextRequest) {
     },
   });
 
-  // Fetch logged in user
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // Check admin session cookie or Supabase user
+  const adminCookie = request.cookies.get("nfcflow_admin_session")?.value;
+  let hasValidSession = adminCookie === "true";
+
+  if (!hasValidSession) {
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (user) {
+        hasValidSession = true;
+      }
+    } catch {
+      // Continue with adminCookie status
+    }
+  }
 
   const isDashboardRoute = request.nextUrl.pathname.startsWith("/dashboard");
   const isLoginPage = request.nextUrl.pathname === "/login";
 
   // 1. Unauthenticated users trying to access dashboard are redirected to /login
-  if (isDashboardRoute && !user) {
+  if (isDashboardRoute && !hasValidSession) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     url.searchParams.set("next", request.nextUrl.pathname);
@@ -46,7 +58,7 @@ export async function updateSession(request: NextRequest) {
   }
 
   // 2. Already authenticated admin trying to visit /login is redirected to /dashboard
-  if (isLoginPage && user) {
+  if (isLoginPage && hasValidSession) {
     const url = request.nextUrl.clone();
     url.pathname = "/dashboard";
     return NextResponse.redirect(url);

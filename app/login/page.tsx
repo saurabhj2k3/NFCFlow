@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, Suspense } from "react";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   ShieldCheck,
@@ -12,7 +13,6 @@ import {
   KeyRound,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
-import { createClient } from "@/lib/supabase/client";
 
 function LoginContent() {
   const router = useRouter();
@@ -32,51 +32,26 @@ function LoginContent() {
     setSuccessMessage("");
 
     try {
-      const supabase = createClient();
-
-      // 1. Attempt standard password sign-in
-      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
       });
 
-      if (signInError) {
-        // 2. If user doesn't exist yet, attempt first-time Super Admin registration
-        if (
-          signInError.message.toLowerCase().includes("invalid login credentials") ||
-          signInError.message.toLowerCase().includes("user not found")
-        ) {
-          const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-            email,
-            password,
-            options: {
-              data: {
-                name: "Super Admin",
-                role: "super_admin",
-              },
-            },
-          });
+      const data = await res.json();
 
-          if (!signUpError && signUpData.user) {
-            setSuccessMessage("Super Admin account initialized and logged in! Redirecting...");
-            setTimeout(() => {
-              router.push(next);
-              router.refresh();
-            }, 600);
-            return;
-          }
-        }
-
-        throw new Error(signInError.message || "Invalid email or password");
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || "Authentication failed. Please check your credentials.");
       }
 
-      if (signInData.user) {
-        setSuccessMessage("Authentication successful! Redirecting to dashboard...");
-        setTimeout(() => {
-          router.push(next);
-          router.refresh();
-        }, 600);
-      }
+      setSuccessMessage("Super Admin authenticated! Entering console...");
+
+      // Set cookie in browser document directly as well for instant hydration
+      document.cookie = "nfcflow_admin_session=true; path=/; max-age=2592000; SameSite=Lax";
+
+      setTimeout(() => {
+        window.location.href = next;
+      }, 400);
     } catch (err: any) {
       setErrorMessage(err.message || "Failed to sign in. Please verify your credentials.");
     } finally {
@@ -94,14 +69,15 @@ function LoginContent() {
     <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       {/* Brand Header */}
       <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
-        <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-slate-900 text-white font-bold text-lg tracking-wider shadow-xs mb-3">
-          NF
-        </div>
-        <h2 className="text-2xl font-bold tracking-tight text-slate-900">
-          NFCFlow Admin Portal
-        </h2>
+        <Link href="/" className="inline-block hover:opacity-90 transition-opacity mb-2">
+          <img
+            src="/logo.png"
+            alt="NFCFlow Logo"
+            className="h-12 w-auto object-contain mx-auto"
+          />
+        </Link>
         <p className="mt-1 text-xs text-slate-500">
-          Single Super Admin authentication for managing review cards &amp; locations
+          Super Admin Console • Tap • Scan • Connect
         </p>
       </div>
 
@@ -196,10 +172,10 @@ function LoginContent() {
             </div>
           </form>
 
-          {/* Quick Fill / First-Time Setup Helper */}
+          {/* Quick Fill Helper */}
           <div className="pt-4 border-t border-slate-100 space-y-2">
             <p className="text-[11px] font-semibold text-slate-600 flex items-center gap-1">
-              <KeyRound className="w-3.5 h-3.5 text-slate-500" /> First-Time Admin Credentials:
+              <KeyRound className="w-3.5 h-3.5 text-slate-500" /> Default Admin Credentials:
             </p>
             <div className="grid grid-cols-1 gap-1.5">
               <button

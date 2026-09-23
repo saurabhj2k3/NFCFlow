@@ -11,34 +11,42 @@ const supabaseAnonKey =
 
 export async function POST(request: Request) {
   try {
-    let response = NextResponse.json({ success: true });
+    const response = NextResponse.json({ success: true });
 
-    const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
-      cookies: {
-        getAll() {
-          const cookieHeader = request.headers.get("cookie") || "";
-          return cookieHeader
-            .split(";")
-            .map((c) => c.trim())
-            .filter(Boolean)
-            .map((c) => {
-              const [name, ...val] = c.split("=");
-              return { name, value: val.join("=") };
+    // Clear admin session cookie
+    response.cookies.delete("nfcflow_admin_session");
+
+    try {
+      const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
+        cookies: {
+          getAll() {
+            const cookieHeader = request.headers.get("cookie") || "";
+            return cookieHeader
+              .split(";")
+              .map((c) => c.trim())
+              .filter(Boolean)
+              .map((c) => {
+                const [name, ...val] = c.split("=");
+                return { name, value: val.join("=") };
+              });
+          },
+          setAll(cookiesToSet) {
+            cookiesToSet.forEach(({ name, value, options }) => {
+              response.cookies.set(name, value, options);
             });
+          },
         },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) => {
-            response.cookies.set(name, value, options);
-          });
-        },
-      },
-    });
+      });
 
-    await supabase.auth.signOut();
+      await supabase.auth.signOut().catch(() => null);
+    } catch {
+      // Ignore background error
+    }
+
     return response;
   } catch (error: any) {
     return NextResponse.json(
-      { error: error.message || "Failed to log out" },
+      { error: error?.message || "Failed to log out" },
       { status: 500 }
     );
   }

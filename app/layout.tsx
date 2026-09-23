@@ -12,6 +12,11 @@ export const metadata: Metadata = {
   title: "NFCFlow — Dynamic NFC & QR Review Card Platform",
   description:
     "Deploy permanent PVC NFC & QR review cards for your business. Switch destinations in real time without reprinting cards.",
+  icons: {
+    icon: "/logo.png",
+    shortcut: "/logo.png",
+    apple: "/logo.png",
+  },
 };
 
 export default function RootLayout({

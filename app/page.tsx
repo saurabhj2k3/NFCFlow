@@ -71,17 +71,13 @@ export default function LandingPage() {
     <div className="min-h-screen bg-white text-slate-900 flex flex-col font-sans">
       {/* Navigation */}
       <header className="h-16 border-b border-slate-200 bg-white sticky top-0 z-40 px-6 sm:px-10 flex items-center justify-between">
-        <div className="flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded-lg bg-slate-900 flex items-center justify-center text-white font-bold text-xs">
-            NF
-          </div>
-          <span className="font-bold text-base text-slate-900 tracking-tight">
-            NFCFlow
-          </span>
-          <span className="text-[11px] text-slate-500 font-normal">
-            Platform
-          </span>
-        </div>
+        <Link href="/" className="flex items-center hover:opacity-90 transition-opacity">
+          <img
+            src="/logo.png"
+            alt="NFCFlow Logo"
+            className="h-9 w-auto object-contain"
+          />
+        </Link>
 
         <nav className="hidden md:flex items-center gap-6 text-xs font-medium text-slate-600">
           <a href="#how-it-works" className="hover:text-slate-900 transition-colors">How It Works</a>
@@ -390,12 +386,14 @@ export default function LandingPage() {
       {/* Footer */}
       <footer className="mt-auto border-t border-slate-200 py-6 px-6 sm:px-10 text-xs text-slate-500">
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <div className="w-5 h-5 rounded bg-slate-900 flex items-center justify-center text-white font-bold text-[10px]">
-              NF
-            </div>
-            <span className="font-medium text-slate-800">NFCFlow Platform</span>
-            <span>— Dynamic NFC & QR Google Review Management</span>
+          <div className="flex items-center gap-3">
+            <img
+              src="/logo.png"
+              alt="NFCFlow Logo"
+              className="h-6 w-auto object-contain"
+            />
+            <span className="text-slate-400">|</span>
+            <span>Dynamic NFC &amp; QR Review Card Management</span>
           </div>
 
           <div className="flex items-center gap-4 text-slate-600">

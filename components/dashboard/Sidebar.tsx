@@ -54,19 +54,13 @@ export function Sidebar() {
     <aside className="w-60 border-r border-slate-200 bg-white flex flex-col justify-between shrink-0 min-h-screen">
       <div>
         {/* Brand Logo */}
-        <div className="h-14 flex items-center px-5 border-b border-slate-200 gap-2.5">
-          <div className="w-7 h-7 rounded-lg bg-slate-900 flex items-center justify-center text-white font-bold text-xs">
-            NF
-          </div>
-          <div>
-            <span className="font-bold text-sm text-slate-900 tracking-tight">
-              NFCFlow
-            </span>
-            <span className="text-[10px] text-slate-400 font-mono ml-1.5 font-normal">
-              v1.0
-            </span>
-          </div>
-        </div>
+        <Link href="/dashboard" className="h-14 flex items-center px-4 border-b border-slate-200 hover:opacity-90 transition-opacity">
+          <img
+            src="/logo.png"
+            alt="NFCFlow Logo"
+            className="h-8 w-auto object-contain max-w-[170px]"
+          />
+        </Link>
 
         {/* Navigation links */}
         <nav className="p-3 space-y-1">
