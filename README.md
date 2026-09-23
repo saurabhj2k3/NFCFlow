@@ -9,7 +9,7 @@
   <img src="https://img.shields.io/badge/License-MIT-green" alt="License" />
 </p>
 
-**NFCFlow** is a modern B2B SaaS platform for businesses to deploy permanent physical PVC NFC review cards and dynamic QR standees. With NFCFlow, the physical card URL (`https://nfcflow.in/r/{slug}`) never changes, while the redirect destination (Google Reviews, WhatsApp Chat, Instagram, or Custom Web Links) can be changed instantly in real time from the dashboard with zero reprint costs.
+**NFCFlow** is a modern B2B SaaS platform for businesses to deploy permanent physical PVC NFC review cards and dynamic QR standees. With NFCFlow, the physical card URL (`https://nfcflow.vercel.app/r/{slug}`) never changes, while the redirect destination (Google Reviews, WhatsApp Chat, Instagram, or Custom Web Links) can be changed instantly in real time from the dashboard with zero reprint costs.
 
 ---
 
