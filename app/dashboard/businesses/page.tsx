@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Business } from "@/types";
 import { useDashboard } from "@/components/dashboard/DashboardContext";
 import { Button } from "@/components/ui/Button";
@@ -13,10 +15,17 @@ import {
   MapPin,
   Phone,
   Star,
+  BarChart3,
+  CreditCard,
+  Radio,
+  QrCode,
+  ArrowRight,
+  TrendingUp,
 } from "lucide-react";
 
 export default function BusinessesPage() {
-  const { businesses, refreshData, setSelectedBusinessId } = useDashboard();
+  const router = useRouter();
+  const { businesses, cards, refreshData, setSelectedBusinessId } = useDashboard();
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingBusiness, setEditingBusiness] = useState<Business | null>(null);
 
@@ -74,7 +83,7 @@ export default function BusinessesPage() {
     try {
       const payload = {
         name,
-        slug,
+        slug: slug || name.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
         google_review_url: googleReviewUrl,
         phone,
         email,
@@ -125,6 +134,11 @@ export default function BusinessesPage() {
     }
   };
 
+  const handleNavigateToAnalytics = (bizId: string) => {
+    setSelectedBusinessId(bizId);
+    router.push("/dashboard/analytics");
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -135,7 +149,7 @@ export default function BusinessesPage() {
             Business Locations
           </h1>
           <p className="text-xs text-slate-500 mt-0.5">
-            Configure store branches, default review URLs, and contact details.
+            Manage your branches, active review cards, and location-specific analytics.
           </p>
         </div>
 
@@ -145,93 +159,135 @@ export default function BusinessesPage() {
       </div>
 
       {/* Business Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {businesses.map((biz) => (
-          <div
-            key={biz.id}
-            className="bg-white border border-slate-200 rounded-xl p-5 shadow-xs flex flex-col justify-between"
-          >
-            <div>
-              <div className="flex items-start justify-between gap-3 mb-3">
-                <div className="flex items-center gap-2.5">
-                  <div
-                    className="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-xs"
-                    style={{ backgroundColor: biz.brand_color || "#0f172a" }}
-                  >
-                    {biz.name.slice(0, 2).toUpperCase()}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        {businesses.map((biz) => {
+          // Calculate location-specific metrics
+          const bizCards = cards.filter((c) => c.business_id === biz.id);
+          const totalScans = bizCards.reduce((acc, c) => acc + (c.total_scans || 0), 0);
+          const nfcScans = bizCards.reduce((acc, c) => acc + (c.nfc_scans || 0), 0);
+          const qrScans = bizCards.reduce((acc, c) => acc + (c.qr_scans || 0), 0);
+
+          return (
+            <div
+              key={biz.id}
+              className="bg-white border border-slate-200 rounded-xl p-5 shadow-xs flex flex-col justify-between hover:border-slate-300 transition-all"
+            >
+              <div>
+                {/* Top Title & Actions */}
+                <div className="flex items-start justify-between gap-3 mb-3">
+                  <div className="flex items-center gap-2.5">
+                    <div
+                      className="w-9 h-9 rounded-lg flex items-center justify-center text-white font-bold text-xs shrink-0 shadow-2xs"
+                      style={{ backgroundColor: biz.brand_color || "#0f2e22" }}
+                    >
+                      {biz.name.slice(0, 2).toUpperCase()}
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-slate-900 text-sm leading-tight line-clamp-1">
+                        {biz.name}
+                      </h3>
+                      <span className="font-mono text-[11px] text-slate-400">
+                        {biz.slug}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => openEditModal(biz)}
+                      className="p-1.5 text-slate-400 hover:text-slate-700 rounded-md hover:bg-slate-100 transition-colors cursor-pointer"
+                      title="Edit Location"
+                    >
+                      <Edit2 className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(biz.id, biz.name)}
+                      className="p-1.5 text-slate-400 hover:text-red-600 rounded-md hover:bg-slate-100 transition-colors cursor-pointer"
+                      title="Delete Location"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Location Live Metrics Bar */}
+                <div className="grid grid-cols-2 gap-2 my-3 p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs">
+                  <div>
+                    <span className="text-[10px] uppercase font-semibold text-slate-400 flex items-center gap-1">
+                      <CreditCard className="w-3 h-3" /> Cards
+                    </span>
+                    <p className="font-bold text-slate-900 text-sm mt-0.5">
+                      {bizCards.length}
+                    </p>
                   </div>
                   <div>
-                    <h3 className="font-semibold text-slate-900 text-sm leading-tight line-clamp-1">
-                      {biz.name}
-                    </h3>
-                    <span className="font-mono text-[11px] text-slate-500">
-                      ID: {biz.slug}
+                    <span className="text-[10px] uppercase font-semibold text-slate-400 flex items-center gap-1">
+                      <TrendingUp className="w-3 h-3 text-emerald-600" /> Total Scans
+                    </span>
+                    <p className="font-bold text-slate-900 text-sm mt-0.5">
+                      {totalScans}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Channel Share */}
+                {totalScans > 0 && (
+                  <div className="flex items-center justify-between text-[11px] text-slate-500 mb-3 px-1">
+                    <span className="flex items-center gap-1">
+                      <Radio className="w-3 h-3 text-slate-400" /> {nfcScans} NFC taps
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <QrCode className="w-3 h-3 text-slate-400" /> {qrScans} QR scans
                     </span>
                   </div>
-                </div>
+                )}
 
-                <div className="flex items-center gap-1">
-                  <button
-                    onClick={() => openEditModal(biz)}
-                    className="p-1 text-slate-400 hover:text-slate-700 rounded-md hover:bg-slate-100 transition-colors"
-                    title="Edit Location"
-                  >
-                    <Edit2 className="w-3.5 h-3.5" />
-                  </button>
-                  <button
-                    onClick={() => handleDelete(biz.id, biz.name)}
-                    className="p-1 text-slate-400 hover:text-red-600 rounded-md hover:bg-slate-100 transition-colors"
-                    title="Delete Location"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
+                {/* Details */}
+                <div className="space-y-1.5 text-xs text-slate-600 py-2.5 border-t border-slate-100">
+                  {biz.address && (
+                    <div className="flex items-start gap-1.5">
+                      <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0 mt-0.5" />
+                      <span className="text-slate-600 line-clamp-2">{biz.address}</span>
+                    </div>
+                  )}
+                  {biz.phone && (
+                    <div className="flex items-center gap-1.5">
+                      <Phone className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                      <span>{biz.phone}</span>
+                    </div>
+                  )}
+                  {biz.google_review_url && (
+                    <div className="flex items-center gap-1.5">
+                      <Star className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                      <a
+                        href={biz.google_review_url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-slate-700 hover:underline truncate font-mono text-[11px]"
+                      >
+                        {biz.google_review_url}
+                      </a>
+                    </div>
+                  )}
                 </div>
               </div>
 
-              {/* Details */}
-              <div className="space-y-1.5 text-xs text-slate-600 py-2 border-y border-slate-100 my-3">
-                {biz.address && (
-                  <div className="flex items-start gap-1.5">
-                    <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0 mt-0.5" />
-                    <span className="text-slate-600 line-clamp-2">{biz.address}</span>
-                  </div>
-                )}
-                {biz.phone && (
-                  <div className="flex items-center gap-1.5">
-                    <Phone className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                    <span>{biz.phone}</span>
-                  </div>
-                )}
-                {biz.google_review_url && (
-                  <div className="flex items-center gap-1.5">
-                    <Star className="w-3.5 h-3.5 text-amber-500 shrink-0" />
-                    <a
-                      href={biz.google_review_url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-slate-800 hover:underline truncate font-mono text-[11px]"
-                    >
-                      {biz.google_review_url}
-                    </a>
-                  </div>
-                )}
+              {/* Card Footer Actions */}
+              <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
+                <button
+                  onClick={() => handleNavigateToAnalytics(biz.id)}
+                  className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 flex items-center gap-1 cursor-pointer"
+                >
+                  <BarChart3 className="w-3.5 h-3.5" />
+                  View Analytics <ArrowRight className="w-3 h-3 ml-0.5" />
+                </button>
+                <span className="text-[10px] text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 font-semibold">
+                  Active
+                </span>
               </div>
             </div>
-
-            {/* Card Footer Actions */}
-            <div className="flex items-center justify-between pt-1">
-              <button
-                onClick={() => setSelectedBusinessId(biz.id)}
-                className="text-xs font-semibold text-slate-800 hover:underline"
-              >
-                View Analytics →
-              </button>
-              <span className="text-[11px] text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 font-medium">
-                Active
-              </span>
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Add / Edit Business Modal */}
@@ -239,7 +295,7 @@ export default function BusinessesPage() {
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
         title={editingBusiness ? "Edit Location" : "Add New Location"}
-        description="Configure store details and default Google Review target."
+        description="Configure branch information and default Google Review target."
         maxWidth="lg"
       >
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -249,124 +305,91 @@ export default function BusinessesPage() {
             </div>
           )}
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-            <div className="sm:col-span-2">
-              <label className="text-xs font-semibold text-slate-700 block mb-1">
-                Business / Store Name *
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 mb-1">
+              Location / Branch Name *
+            </label>
+            <input
+              type="text"
+              required
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="e.g. Swasthya Medical - Phoenix Mall"
+              className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-slate-900"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 mb-1">
+              Google Review Target URL *
+            </label>
+            <input
+              type="url"
+              required
+              value={googleReviewUrl}
+              onChange={(e) => setGoogleReviewUrl(e.target.value)}
+              placeholder="https://g.page/r/CbXx_your_review_link/review"
+              className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-slate-900 font-mono text-[11px]"
+            />
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1">
+                Store Phone Number
               </label>
               <input
                 type="text"
-                required
-                placeholder="e.g. Swasthya Medical & General Store"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-slate-500"
-              />
-            </div>
-
-            <div>
-              <label className="text-xs font-semibold text-slate-700 block mb-1">
-                Location Slug (Unique ID)
-              </label>
-              <input
-                type="text"
-                placeholder="e.g. swasthya-medical"
-                value={slug}
-                onChange={(e) => setSlug(e.target.value)}
-                className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-slate-500"
-              />
-            </div>
-
-            <div>
-              <label className="text-xs font-semibold text-slate-700 block mb-1">
-                Card Theme Color
-              </label>
-              <div className="flex items-center gap-2">
-                <input
-                  type="color"
-                  value={brandColor}
-                  onChange={(e) => setBrandColor(e.target.value)}
-                  className="w-8 h-8 rounded-lg border border-slate-300 cursor-pointer p-0.5"
-                />
-                <input
-                  type="text"
-                  value={brandColor}
-                  onChange={(e) => setBrandColor(e.target.value)}
-                  className="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-xs font-mono uppercase"
-                />
-              </div>
-            </div>
-
-            <div className="sm:col-span-2">
-              <label className="text-xs font-semibold text-slate-700 block mb-1">
-                Default Google Review URL *
-              </label>
-              <input
-                type="url"
-                required
-                placeholder="https://g.page/r/XXXXXXXX/review"
-                value={googleReviewUrl}
-                onChange={(e) => setGoogleReviewUrl(e.target.value)}
-                className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-slate-500 font-mono"
-              />
-            </div>
-
-            <div>
-              <label className="text-xs font-semibold text-slate-700 block mb-1">
-                Phone Number
-              </label>
-              <input
-                type="text"
-                placeholder="+91 98765 43210"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-slate-500"
+                placeholder="+91 98765 43210"
+                className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-slate-900"
               />
             </div>
 
             <div>
-              <label className="text-xs font-semibold text-slate-700 block mb-1">
-                WhatsApp Number
+              <label className="block text-xs font-semibold text-slate-700 mb-1">
+                WhatsApp Number (Optional)
               </label>
               <input
                 type="text"
-                placeholder="919876543210"
                 value={whatsappNumber}
                 onChange={(e) => setWhatsappNumber(e.target.value)}
-                className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-slate-500"
-              />
-            </div>
-
-            <div className="sm:col-span-2">
-              <label className="text-xs font-semibold text-slate-700 block mb-1">
-                Store Address
-              </label>
-              <textarea
-                rows={2}
-                placeholder="Shop No., Street, City, State, PIN"
-                value={address}
-                onChange={(e) => setAddress(e.target.value)}
-                className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-slate-500"
+                placeholder="919876543210"
+                className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-slate-900"
               />
             </div>
           </div>
 
-          <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 mb-1">
+              Store Address
+            </label>
+            <textarea
+              rows={2}
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
+              placeholder="Shop No. 4, Ground Floor, Phoenix Marketcity..."
+              className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-slate-900"
+            />
+          </div>
+
+          <div className="pt-2 flex items-center justify-end gap-2 border-t border-slate-100">
             <Button
               type="button"
               onClick={() => setIsAddModalOpen(false)}
-              variant="secondary"
+              variant="outline"
               size="sm"
             >
               Cancel
             </Button>
             <Button
               type="submit"
+              disabled={isSubmitting}
               variant="primary"
               size="sm"
-              isLoading={isSubmitting}
             >
-              {editingBusiness ? "Update Location" : "Save Location"}
+              {isSubmitting ? "Saving..." : editingBusiness ? "Save Changes" : "Create Location"}
             </Button>
           </div>
         </form>
