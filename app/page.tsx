@@ -91,6 +91,9 @@ export default function LandingPage() {
         </nav>
 
         <div className="flex items-center gap-3">
+          <Link href="/login" className="text-xs font-semibold text-slate-600 hover:text-slate-900 transition-colors">
+            Admin Login
+          </Link>
           <Link href="/dashboard">
             <Button variant="primary" size="sm">
               Open Dashboard <ArrowRight className="w-3.5 h-3.5" />

@@ -2,12 +2,15 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Business, UserRole } from "@/types";
 import {
   Building2,
   ChevronDown,
   Plus,
   ExternalLink,
+  LogOut,
+  ShieldCheck,
 } from "lucide-react";
 
 interface HeaderProps {
@@ -22,15 +25,29 @@ export function Header({
   businesses,
   selectedBusinessId,
   onSelectBusiness,
-  userRole = "super_admin",
-  onRoleChange,
 }: HeaderProps) {
+  const router = useRouter();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const selectedBiz = businesses.find((b) => b.id === selectedBusinessId);
+
+  const handleSignOut = async () => {
+    setIsLoggingOut(true);
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+      router.push("/login");
+      router.refresh();
+    } catch (err) {
+      console.error("Sign out error:", err);
+      router.push("/login");
+    } finally {
+      setIsLoggingOut(false);
+    }
+  };
 
   return (
     <header className="h-14 border-b border-slate-200 bg-white px-4 sm:px-6 flex items-center justify-between sticky top-0 z-30 shadow-2xs">
-      {/* Left: Business Selector */}
+      {/* Left: Business Location Selector */}
       <div className="flex items-center gap-3">
         <div className="relative">
           <button
@@ -112,37 +129,35 @@ export function Header({
         </div>
       </div>
 
-      {/* Right: Quick Role Switcher, Public Landing Link, User Info */}
+      {/* Right: Super Admin Status & Actions */}
       <div className="flex items-center gap-3 sm:gap-4 text-xs">
-        {onRoleChange && (
-          <div className="hidden md:flex items-center bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 gap-1.5">
-            <span className="text-slate-400 text-[11px]">Role:</span>
-            <select
-              value={userRole}
-              onChange={(e) => onRoleChange(e.target.value as UserRole)}
-              className="bg-transparent text-slate-800 font-medium text-xs focus:outline-none cursor-pointer"
-            >
-              <option value="super_admin">Super Admin</option>
-              <option value="business_owner">Business Owner</option>
-              <option value="manager">Store Manager</option>
-            </select>
-          </div>
-        )}
+        {/* Super Admin Badge */}
+        <div className="hidden sm:flex items-center gap-1.5 bg-emerald-50 border border-emerald-200 text-emerald-800 px-2.5 py-1 rounded-full text-[11px] font-semibold">
+          <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+          <span>Super Admin</span>
+        </div>
 
+        {/* View Live Site Link */}
         <Link
           href="/"
           target="_blank"
-          className="inline-flex items-center gap-1 text-slate-500 hover:text-slate-800 transition-colors"
+          className="hidden md:inline-flex items-center gap-1 text-slate-500 hover:text-slate-800 transition-colors"
         >
-          <span>Landing Page</span>
+          <span>Live Site</span>
           <ExternalLink className="w-3 h-3" />
         </Link>
 
-        {/* User avatar */}
+        {/* Sign Out Button */}
         <div className="flex items-center gap-2 pl-2 border-l border-slate-200">
-          <div className="w-7 h-7 rounded-full bg-slate-900 flex items-center justify-center font-bold text-xs text-white">
-            {userRole === "super_admin" ? "SA" : userRole === "business_owner" ? "BO" : "M"}
-          </div>
+          <button
+            onClick={handleSignOut}
+            disabled={isLoggingOut}
+            className="flex items-center gap-1.5 text-slate-600 hover:text-red-700 bg-slate-50 hover:bg-red-50 border border-slate-200 hover:border-red-200 px-2.5 py-1 rounded-lg transition-colors font-medium text-xs cursor-pointer"
+            title="Sign Out of Admin Console"
+          >
+            <LogOut className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">{isLoggingOut ? "Signing out..." : "Sign Out"}</span>
+          </button>
         </div>
       </div>
     </header>
