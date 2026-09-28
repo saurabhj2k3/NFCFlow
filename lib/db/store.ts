@@ -162,7 +162,6 @@ function parseCardNotes(notes?: string | null): {
 
 export async function getBusinesses(): Promise<Business[]> {
   const db = loadDb();
-  let result = [...db.businesses];
 
   if (isSupabaseConfigured) {
     const client = getActiveSupabaseClient();
@@ -173,20 +172,8 @@ export async function getBusinesses(): Promise<Business[]> {
           .select("*")
           .order("created_at", { ascending: false });
 
-        if (!error && data && data.length > 0) {
-          const seen = new Set<string>();
-          const merged: Business[] = [];
-          for (const b of data as Business[]) {
-            seen.add(b.id);
-            merged.push(b);
-          }
-          for (const b of db.businesses) {
-            if (!seen.has(b.id)) {
-              seen.add(b.id);
-              merged.push(b);
-            }
-          }
-          result = merged;
+        if (!error && data) {
+          return data as Business[];
         }
       } catch (e) {
         console.warn("Supabase query failed, using local storage fallback:", e);
@@ -194,7 +181,7 @@ export async function getBusinesses(): Promise<Business[]> {
     }
   }
 
-  return result;
+  return [...db.businesses];
 }
 
 export async function getBusinessById(id: string): Promise<Business | null> {
@@ -368,14 +355,14 @@ export async function getCards(
 
         const { data: cardsData, error: cardsError } = await query;
 
-        if (!cardsError && cardsData && cardsData.length > 0) {
+        if (!cardsError && cardsData) {
           const { data: eventsData } = await client
             .from("redirect_events")
             .select("card_id, slug, source");
 
           const eventsList = (eventsData || []) as Array<{ card_id: string; slug: string; source: string }>;
 
-          const remoteCards: Card[] = cardsData.map((c: any) => {
+          allCards = cardsData.map((c: any) => {
             const cardEvents = eventsList.filter(
               (e) => e.card_id === c.id || (e.slug && e.slug.toLowerCase() === c.slug.toLowerCase())
             );
@@ -395,24 +382,6 @@ export async function getCards(
               qr_scans: cardEvents.filter((e) => e.source === "qr").length,
             };
           });
-
-          // Merge Supabase cards and local cards (deduplicating by slug/id)
-          const seenSlugs = new Set<string>();
-          const merged: Card[] = [];
-
-          for (const card of remoteCards) {
-            seenSlugs.add(card.slug.toLowerCase());
-            merged.push(card);
-          }
-
-          for (const card of db.cards) {
-            if (!seenSlugs.has(card.slug.toLowerCase())) {
-              seenSlugs.add(card.slug.toLowerCase());
-              merged.push(card);
-            }
-          }
-
-          allCards = merged;
         }
       } catch (e) {
         console.warn("Supabase getCards exception, using local store:", e);
@@ -753,7 +722,7 @@ export async function getBatches(): Promise<CardBatch[]> {
   const db = loadDb();
   const allCards = await getCards();
 
-  let batchesList = [...db.batches];
+  let batchesList: CardBatch[] = [...db.batches];
 
   if (isSupabaseConfigured) {
     const client = getActiveSupabaseClient();
@@ -764,20 +733,8 @@ export async function getBatches(): Promise<CardBatch[]> {
           .select("*")
           .order("created_at", { ascending: false });
 
-        if (!error && data && data.length > 0) {
-          const seen = new Set<string>();
-          const merged: CardBatch[] = [];
-          for (const b of data as CardBatch[]) {
-            seen.add(b.id);
-            merged.push(b);
-          }
-          for (const b of db.batches) {
-            if (!seen.has(b.id)) {
-              seen.add(b.id);
-              merged.push(b);
-            }
-          }
-          batchesList = merged;
+        if (!error && data) {
+          batchesList = data as CardBatch[];
         }
       } catch (e) {
         console.warn("Supabase getBatches note:", e);
@@ -1376,7 +1333,7 @@ export async function getScanEvents(params?: {
   limit?: number;
 }): Promise<RedirectEvent[]> {
   const db = loadDb();
-  let events = [...db.events];
+  let events: RedirectEvent[] = [...db.events];
 
   if (isSupabaseConfigured) {
     const client = getActiveSupabaseClient();
@@ -1400,20 +1357,8 @@ export async function getScanEvents(params?: {
         }
 
         const { data, error } = await query;
-        if (!error && data && data.length > 0) {
-          const seen = new Set<string>();
-          const merged: RedirectEvent[] = [];
-          for (const ev of data as RedirectEvent[]) {
-            seen.add(ev.id);
-            merged.push(ev);
-          }
-          for (const ev of db.events) {
-            if (!seen.has(ev.id)) {
-              seen.add(ev.id);
-              merged.push(ev);
-            }
-          }
-          events = merged;
+        if (!error && data) {
+          events = data as RedirectEvent[];
         }
       } catch (e) {
         console.warn("Supabase getScanEvents exception:", e);
