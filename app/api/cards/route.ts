@@ -9,7 +9,8 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const businessId = searchParams.get("business_id") || undefined;
-    const cards = await getCards(businessId);
+    const batchId = searchParams.get("batch_id") || undefined;
+    const cards = await getCards({ business_id: businessId, batch_id: batchId });
     return NextResponse.json({ success: true, data: cards });
   } catch (error: any) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });

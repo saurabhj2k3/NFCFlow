@@ -22,9 +22,12 @@ import {
 export default function NewCardPage() {
   const router = useRouter();
   const { businesses, selectedBusinessId } = useDashboard();
+  const [batches, setBatches] = useState<any[]>([]);
 
   // Form State
   const [businessId, setBusinessId] = useState<string>("");
+  const [batchId, setBatchId] = useState<string>("");
+  const [branch, setBranch] = useState<string>("");
   const [name, setName] = useState<string>("");
   const [slug, setSlug] = useState<string>("");
   const [destinationType, setDestinationType] = useState<DestinationType>("google_review");
@@ -35,6 +38,14 @@ export default function NewCardPage() {
 
   useEffect(() => {
     setSlug(generateSlug(6));
+    // Load batches
+    fetch("/api/batches")
+      .then((res) => res.json())
+      .then((json) => {
+        if (json.success) setBatches(json.data);
+      })
+      .catch((err) => console.error(err));
+
     if (businesses.length > 0) {
       const defaultBizId = selectedBusinessId !== "all" ? selectedBusinessId : businesses[0].id;
       setBusinessId(defaultBizId);
@@ -79,6 +90,12 @@ export default function NewCardPage() {
             : "https://instagram.com/"
         );
         break;
+      case "menu":
+        setDestinationUrl("https://");
+        break;
+      case "vcard":
+        setDestinationUrl("https://");
+        break;
       case "custom":
         setDestinationUrl("https://");
         break;
@@ -102,6 +119,8 @@ export default function NewCardPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           business_id: businessId,
+          batch_id: batchId || undefined,
+          branch: branch || undefined,
           name,
           slug,
           destination_type: destinationType,
@@ -221,17 +240,53 @@ export default function NewCardPage() {
               </div>
             </div>
 
+            {/* Batch & Branch Selection Row */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs font-semibold text-slate-700 block mb-1">
+                  Card Batch (Optional)
+                </label>
+                <select
+                  value={batchId}
+                  onChange={(e) => setBatchId(e.target.value)}
+                  className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900 focus:outline-hidden focus:border-slate-500"
+                >
+                  <option value="">No Batch / Standalone</option>
+                  {batches.map((b) => (
+                    <option key={b.id} value={b.id}>
+                      {b.batch_name} ({b.prefix})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold text-slate-700 block mb-1">
+                  Branch / Location Tag
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. Table 1, Pune Main Branch"
+                  value={branch}
+                  onChange={(e) => setBranch(e.target.value)}
+                  className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900 focus:outline-hidden focus:border-slate-500"
+                />
+              </div>
+            </div>
+
             {/* Destination Selector Tabs */}
             <div>
               <label className="text-xs font-semibold text-slate-700 block mb-1.5">
                 Initial Destination
               </label>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
                 {[
                   { id: "google_review", label: "Google Reviews", icon: Star },
                   { id: "whatsapp", label: "WhatsApp Chat", icon: MessageCircle },
                   { id: "website", label: "Store Website", icon: Globe },
                   { id: "instagram", label: "Instagram", icon: Instagram },
+                  { id: "menu", label: "Restaurant Menu", icon: Globe },
+                  { id: "vcard", label: "Digital VCard", icon: Globe },
                   { id: "custom", label: "Custom Link", icon: Link2 },
                 ].map((item) => {
                   const Icon = item.icon;
@@ -266,7 +321,7 @@ export default function NewCardPage() {
                 placeholder="https://..."
                 value={destinationUrl}
                 onChange={(e) => setDestinationUrl(e.target.value)}
-                className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-slate-500 font-mono"
+                className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900 focus:outline-hidden focus:border-slate-500 font-mono"
               />
             </div>
 
@@ -277,7 +332,7 @@ export default function NewCardPage() {
                 </Button>
               </Link>
               <Button type="submit" variant="primary" size="md" isLoading={isSubmitting}>
-                Save Card & Open Studio
+                Save Card &amp; Open Studio
               </Button>
             </div>
           </form>

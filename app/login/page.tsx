@@ -10,7 +10,6 @@ import {
   ArrowRight,
   AlertCircle,
   CheckCircle2,
-  KeyRound,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 
@@ -19,8 +18,8 @@ function LoginContent() {
   const searchParams = useSearchParams();
   const next = searchParams.get("next") || "/dashboard";
 
-  const [email, setEmail] = useState("admin@nfcflow.in");
-  const [password, setPassword] = useState("Admin@123456");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
@@ -59,12 +58,6 @@ function LoginContent() {
     }
   };
 
-  const fillDemoAdmin = (adminEmail: string, pass: string) => {
-    setEmail(adminEmail);
-    setPassword(pass);
-    setErrorMessage("");
-  };
-
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       {/* Brand Header */}
@@ -90,7 +83,7 @@ function LoginContent() {
         <div className="bg-white py-8 px-6 sm:px-10 border border-slate-200 rounded-2xl shadow-xs space-y-5">
           {/* Security Notice */}
           <div className="flex items-start gap-2.5 p-3 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-600">
-            <ShieldCheck className="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />
+            <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
             <div>
               <span className="font-semibold text-slate-900">Protected Super Admin Console</span>
               <p className="text-[11px] text-slate-500 mt-0.5">
@@ -102,7 +95,7 @@ function LoginContent() {
           {/* Success Message */}
           {successMessage && (
             <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-lg flex items-center gap-2 text-xs text-emerald-800 font-medium animate-in fade-in duration-200">
-              <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
               {successMessage}
             </div>
           )}
@@ -110,7 +103,7 @@ function LoginContent() {
           {/* Error Message */}
           {errorMessage && (
             <div className="p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2 text-xs text-red-800 font-medium animate-in fade-in duration-200">
-              <AlertCircle className="w-4 h-4 text-red-600 flex-shrink-0" />
+              <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
               {errorMessage}
             </div>
           )}
@@ -175,28 +168,6 @@ function LoginContent() {
               </Button>
             </div>
           </form>
-
-          {/* Quick Fill Helper */}
-          <div className="pt-4 border-t border-slate-100 space-y-2">
-            <p className="text-[11px] font-semibold text-slate-600 flex items-center gap-1">
-              <KeyRound className="w-3.5 h-3.5 text-slate-500" /> Default Admin Credentials:
-            </p>
-            <div className="grid grid-cols-1 gap-1.5">
-              <button
-                type="button"
-                onClick={() => fillDemoAdmin("admin@nfcflow.in", "Admin@123456")}
-                className="w-full text-left p-2 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-200 transition-colors flex items-center justify-between text-xs text-slate-700 group cursor-pointer"
-              >
-                <div>
-                  <span className="font-semibold text-slate-900 block">admin@nfcflow.in</span>
-                  <span className="text-[10px] text-slate-500 font-mono">Password: Admin@123456</span>
-                </div>
-                <span className="text-[11px] font-medium text-indigo-600 group-hover:underline">
-                  Auto-fill
-                </span>
-              </button>
-            </div>
-          </div>
         </div>
 
         {/* Footer Link */}

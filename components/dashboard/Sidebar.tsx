@@ -7,10 +7,11 @@ import {
   LayoutDashboard,
   Building2,
   CreditCard,
+  Layers,
   BarChart3,
-  Cpu,
-  Settings,
   Plus,
+  Sparkles,
+  ExternalLink,
 } from "lucide-react";
 
 export function Sidebar() {
@@ -24,29 +25,24 @@ export function Sidebar() {
       exact: true,
     },
     {
-      label: "Cards",
-      href: "/dashboard/cards",
-      icon: CreditCard,
-    },
-    {
       label: "Businesses",
       href: "/dashboard/businesses",
       icon: Building2,
     },
     {
+      label: "Cards",
+      href: "/dashboard/cards",
+      icon: CreditCard,
+    },
+    {
+      label: "Card Batches",
+      href: "/dashboard/batches",
+      icon: Layers,
+    },
+    {
       label: "Analytics",
       href: "/dashboard/analytics",
       icon: BarChart3,
-    },
-    {
-      label: "Hardware Guide",
-      href: "/dashboard/hardware",
-      icon: Cpu,
-    },
-    {
-      label: "Settings",
-      href: "/dashboard/settings",
-      icon: Settings,
     },
   ];
 
@@ -94,9 +90,18 @@ export function Sidebar() {
 
       {/* Quick Action Box */}
       <div className="p-3 m-3 bg-slate-50 border border-slate-200 rounded-lg space-y-2">
-        <p className="text-[11px] text-slate-600 leading-snug">
-          Permanent URLs allow changing card targets anytime.
-        </p>
+        <Link
+          href="/activate"
+          target="_blank"
+          className="w-full inline-flex items-center justify-between py-1.5 px-2.5 bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold rounded-md text-[11px] transition-colors border border-blue-200"
+        >
+          <span className="flex items-center gap-1.5">
+            <Sparkles className="w-3.5 h-3.5 text-blue-600" />
+            Activation Portal
+          </span>
+          <ExternalLink className="w-3 h-3 text-blue-500" />
+        </Link>
+
         <Link
           href="/dashboard/cards/new"
           className="w-full inline-flex items-center justify-center py-1.5 px-3 bg-slate-900 hover:bg-slate-800 text-white font-medium rounded-md text-xs transition-colors shadow-xs gap-1.5"

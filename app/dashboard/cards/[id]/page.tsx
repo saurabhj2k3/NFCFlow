@@ -271,6 +271,8 @@ export default function CardStudioDetailPage({
                       { id: "whatsapp", label: "WhatsApp Chat", icon: MessageCircle },
                       { id: "website", label: "Store Website", icon: Globe },
                       { id: "instagram", label: "Instagram", icon: Instagram },
+                      { id: "menu", label: "Restaurant Menu", icon: Globe },
+                      { id: "vcard", label: "Digital VCard", icon: Globe },
                       { id: "custom", label: "Custom Link", icon: Link2 },
                     ].map((item) => {
                       const Icon = item.icon;
@@ -303,6 +305,7 @@ export default function CardStudioDetailPage({
                     required
                     value={destUrl}
                     onChange={(e) => setDestUrl(e.target.value)}
+                    placeholder="https://..."
                     className="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900 focus:outline-none focus:border-slate-500 font-mono"
                   />
                 </div>
@@ -318,6 +321,8 @@ export default function CardStudioDetailPage({
                       className="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-xs text-slate-900 focus:outline-none focus:border-slate-500"
                     >
                       <option value="active">Active</option>
+                      <option value="in_stock">In Stock</option>
+                      <option value="sold">Sold / Ready to Activate</option>
                       <option value="draft">Draft</option>
                       <option value="suspended">Suspended</option>
                       <option value="archived">Archived</option>

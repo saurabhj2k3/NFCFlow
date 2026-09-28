@@ -42,20 +42,58 @@ export function Badge({
   );
 }
 
-export function StatusBadge({ status }: { status: "draft" | "active" | "suspended" | "archived" }) {
-  switch (status) {
+import { CardStatus, InventoryStatus, BatchStatus } from "@/types";
+
+export function StatusBadge({ status }: { status: CardStatus | InventoryStatus | BatchStatus | string }) {
+  switch (status?.toLowerCase()) {
     case "active":
       return (
         <Badge variant="success">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse" />
           Active
         </Badge>
       );
+    case "in_stock":
+      return (
+        <Badge variant="info">
+          <span className="w-1.5 h-1.5 rounded-full bg-blue-600" />
+          In Stock
+        </Badge>
+      );
+    case "sold":
+      return (
+        <Badge variant="warning">
+          <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+          Sold / Ready
+        </Badge>
+      );
     case "draft":
+    case "generated":
       return (
         <Badge variant="warning">
           <span className="w-1.5 h-1.5 rounded-full bg-amber-600" />
-          Draft
+          {status === "generated" ? "Generated" : "Draft"}
+        </Badge>
+      );
+    case "printed":
+      return (
+        <Badge variant="info">
+          <span className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
+          Printed
+        </Badge>
+      );
+    case "nfc_programmed":
+      return (
+        <Badge variant="info">
+          <span className="w-1.5 h-1.5 rounded-full bg-cyan-600" />
+          NFC Programmed
+        </Badge>
+      );
+    case "tested":
+      return (
+        <Badge variant="success">
+          <span className="w-1.5 h-1.5 rounded-full bg-teal-600" />
+          Tested
         </Badge>
       );
     case "suspended":
@@ -63,6 +101,13 @@ export function StatusBadge({ status }: { status: "draft" | "active" | "suspende
         <Badge variant="danger">
           <span className="w-1.5 h-1.5 rounded-full bg-rose-600" />
           Suspended
+        </Badge>
+      );
+    case "lost":
+      return (
+        <Badge variant="danger">
+          <span className="w-1.5 h-1.5 rounded-full bg-red-600" />
+          Lost
         </Badge>
       );
     case "archived":
