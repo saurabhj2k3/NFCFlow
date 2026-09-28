@@ -1192,6 +1192,7 @@ export async function verifyCardManagementAuth(
   business?: Business;
   scanCount?: number;
   message?: string;
+  not_activated?: boolean;
 }> {
   const cleanId = (cardIdentifier || "").trim().toLowerCase();
   const cleanCode = (activationCode || "").trim().toUpperCase().replace(/\s+/g, "");
@@ -1216,6 +1217,17 @@ export async function verifyCardManagementAuth(
     return {
       valid: false,
       message: "The activation code does not match this card. Please check the secret code printed on your card envelope/box.",
+    };
+  }
+
+  // Check if card is activated
+  const isCardActive = card.status === "active" && !!card.destination_url;
+  if (!isCardActive) {
+    return {
+      valid: false,
+      not_activated: true,
+      card,
+      message: `Card ${card.slug} is not activated yet. Please activate your card and register your business first before managing it.`,
     };
   }
 

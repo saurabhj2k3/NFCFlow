@@ -158,6 +158,7 @@ function ManageCardContent() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
+  const [notActivatedInfo, setNotActivatedInfo] = useState<{ slug: string; code: string } | null>(null);
 
   // Authenticated Card States
   const [card, setCard] = useState<Card | null>(null);
@@ -181,6 +182,7 @@ function ManageCardContent() {
     }
     setActivationCode(val);
     setAuthError(null);
+    setNotActivatedInfo(null);
   };
 
   // Perform Auth Verification
@@ -197,6 +199,7 @@ function ManageCardContent() {
 
     setIsVerifying(true);
     setAuthError(null);
+    setNotActivatedInfo(null);
 
     try {
       const res = await fetch("/api/manage/verify", {
@@ -210,6 +213,12 @@ function ManageCardContent() {
 
       const json = await res.json();
       if (!res.ok || !json.success) {
+        if (json.not_activated) {
+          setNotActivatedInfo({
+            slug: json.card_slug || cardId.trim(),
+            code: activationCode.trim(),
+          });
+        }
         throw new Error(json.error || "Authentication failed.");
       }
 
@@ -342,12 +351,31 @@ function ManageCardContent() {
             </div>
 
             <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 sm:p-7 shadow-2xl backdrop-blur-xl">
-              {authError && (
+              {notActivatedInfo ? (
+                <div className="p-4 bg-amber-950/40 border border-amber-500/40 rounded-xl text-xs text-amber-200 mb-5 space-y-3 animate-in fade-in">
+                  <div className="flex items-start gap-2.5">
+                    <AlertCircle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-bold text-amber-300">Card is not activated yet</p>
+                      <p className="text-[11px] text-amber-200/80 mt-0.5 leading-relaxed">
+                        Card <span className="font-mono text-white font-bold">{notActivatedInfo.slug}</span> must be registered to a business before you can manage its destination.
+                      </p>
+                    </div>
+                  </div>
+                  <Link
+                    href={`/activate?card=${notActivatedInfo.slug}&code=${notActivatedInfo.code}`}
+                    className="w-full inline-flex items-center justify-center gap-1.5 py-2 px-3 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-lg text-xs transition-colors shadow-xs"
+                  >
+                    <span>Activate Card & Register Business</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </Link>
+                </div>
+              ) : authError ? (
                 <div className="p-3.5 bg-rose-950/40 border border-rose-800/60 rounded-xl text-xs text-rose-300 mb-5 flex items-start gap-2.5">
                   <AlertCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
                   <span>{authError}</span>
                 </div>
-              )}
+              ) : null}
 
               <form onSubmit={handleVerify} className="space-y-4">
                 <div>

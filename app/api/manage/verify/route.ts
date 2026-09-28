@@ -19,6 +19,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         {
           success: false,
+          not_activated: result.not_activated || false,
+          card_slug: result.card?.slug || card_id,
           error: result.message || "Invalid Card ID or Activation Code.",
         },
         { status: 400 }
