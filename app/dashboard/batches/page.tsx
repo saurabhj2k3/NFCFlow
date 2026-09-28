@@ -59,9 +59,9 @@ export default function BatchesDashboardPage() {
   const [selectedBatchForPrint, setSelectedBatchForPrint] = useState<{ batch: CardBatch; cards: Card[] } | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [printLayout, setPrintLayout] = useState<"portrait_cards" | "packaging_slips">("portrait_cards");
-  const [printTheme, setPrintTheme] = useState<"matte_black" | "frost_white" | "midnight_navy" | "emerald_gold">("matte_black");
-  const [printSubtitle, setPrintSubtitle] = useState("HELP OTHERS DISCOVER US");
-  const [printHeadline, setPrintHeadline] = useState("REVIEW NOW!");
+  const [printTheme, setPrintTheme] = useState<"white_revuz_edition" | "matte_black" | "frost_white" | "midnight_navy" | "emerald_gold">("white_revuz_edition");
+  const [printSubtitle, setPrintSubtitle] = useState("WE'D LOVE");
+  const [printHeadline, setPrintHeadline] = useState("YOUR FEEDBACK");
   const [printBrandTag, setPrintBrandTag] = useState("REVUZ");
 
   // Form states for batch creation
@@ -603,8 +603,8 @@ export default function BatchesDashboardPage() {
                   onChange={(e) => setPrintTheme(e.target.value as any)}
                   className="w-full bg-white border border-slate-200 rounded-lg py-1.5 px-2 text-xs font-medium text-slate-800"
                 >
-                  <option value="matte_black">Matte Obsidian Black (Revuz)</option>
-                  <option value="frost_white">Luxe Frost White</option>
+                  <option value="white_revuz_edition">Google White (4-Color Borders Edition)</option>
+                  <option value="matte_black">Matte Obsidian Black (Revuz Edition)</option>
                   <option value="midnight_navy">Midnight Royal Navy</option>
                   <option value="emerald_gold">Emerald Green & Gold</option>
                 </select>

@@ -1,9 +1,8 @@
 "use client";
 
 import React, { useEffect, useState, useRef } from "react";
-import { Star, Wifi, RotateCcw, Printer, Download, Sparkles, Smartphone, Check } from "lucide-react";
+import { Star, Wifi, RotateCcw, Smartphone } from "lucide-react";
 import { getCardRedirectUrl } from "@/lib/utils";
-import { Button } from "@/components/ui/Button";
 
 export function GoogleGLogo({ className = "w-16 h-16" }: { className?: string }) {
   return (
@@ -28,6 +27,30 @@ export function GoogleGLogo({ className = "w-16 h-16" }: { className?: string })
   );
 }
 
+export function GoogleLogotype({ className = "text-2xl font-bold tracking-tight" }: { className?: string }) {
+  return (
+    <span className={`inline-flex items-center font-sans font-semibold tracking-tight ${className}`}>
+      <span className="text-[#4285F4]">G</span>
+      <span className="text-[#EA4335]">o</span>
+      <span className="text-[#FBBC05]">o</span>
+      <span className="text-[#4285F4]">g</span>
+      <span className="text-[#34A853]">l</span>
+      <span className="text-[#EA4335]">e</span>
+    </span>
+  );
+}
+
+export function GoogleDiagonalBar({ className = "w-full" }: { className?: string }) {
+  return (
+    <div className={`w-full flex items-center justify-between gap-1.5 overflow-hidden h-2 ${className}`}>
+      <div className="flex-1 h-2 bg-[#EA4335] -skew-x-30 rounded-xs" />
+      <div className="flex-1 h-2 bg-[#FBBC05] -skew-x-30 rounded-xs" />
+      <div className="flex-1 h-2 bg-[#4285F4] -skew-x-30 rounded-xs" />
+      <div className="flex-1 h-2 bg-[#34A853] -skew-x-30 rounded-xs" />
+    </div>
+  );
+}
+
 export function NfcLeftWaves({ className = "w-5 h-8 text-white/80" }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
@@ -46,13 +69,23 @@ export function NfcRightWaves({ className = "w-5 h-8 text-white/80" }: { classNa
   );
 }
 
+export function ContactlessNfcSymbol({ className = "w-4 h-4 text-zinc-800" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
+      <path d="M14 6a8 8 0 0 1 0 12" />
+      <path d="M10 8.5a4.5 4.5 0 0 1 0 7" />
+      <path d="M6 11a1 1 0 0 1 0 2" />
+    </svg>
+  );
+}
+
 export interface GoogleReviewPortraitCardProps {
   slug: string;
   businessName?: string;
   activationCode?: string;
   headerSubtitle?: string;
   headerHeadline?: string;
-  theme?: "matte_black" | "frost_white" | "midnight_navy" | "emerald_gold";
+  theme?: "white_revuz_edition" | "matte_black" | "frost_white" | "midnight_navy" | "emerald_gold";
   brandTag?: string;
   showActivationCode?: boolean;
   scale?: number;
@@ -64,9 +97,9 @@ export function GoogleReviewPortraitCard({
   slug,
   businessName = "NFCFlow",
   activationCode,
-  headerSubtitle = "HELP OTHERS DISCOVER US",
-  headerHeadline = "REVIEW NOW!",
-  theme = "matte_black",
+  headerSubtitle = "WE'D LOVE",
+  headerHeadline = "YOUR FEEDBACK",
+  theme = "white_revuz_edition",
   brandTag,
   showActivationCode = false,
   scale = 1,
@@ -84,7 +117,7 @@ export function GoogleReviewPortraitCard({
         width: 360,
         margin: 1,
         color: {
-          dark: theme === "frost_white" ? "#0f172a" : "#000000",
+          dark: "#0a0a0a",
           light: "#ffffff",
         },
         errorCorrectionLevel: "H",
@@ -98,9 +131,169 @@ export function GoogleReviewPortraitCard({
     };
   }, [qrUrl, theme]);
 
-  const displayBrand = brandTag || businessName || "NFCFlow";
+  const displayBrand = brandTag || businessName || "REVUZ";
 
-  // Theme Styling
+  // =========================================================================
+  // DESIGN 1: WHITE REVUZ DUAL-SIDED WITH 4-COLOR BORDERS (Exact Match to New Photo)
+  // =========================================================================
+  if (theme === "white_revuz_edition") {
+    return (
+      <div className="flex flex-col items-center">
+        <div
+          className="relative perspective-1000 select-none print:shadow-none print:border-none"
+          style={{
+            width: `${254 * scale}px`,
+            height: `${402 * scale}px`,
+          }}
+        >
+          <div
+            ref={cardRef}
+            onClick={() => interactive && setIsFlipped(!isFlipped)}
+            className={`w-full h-full duration-500 transform-style-3d ${
+              interactive ? "cursor-pointer" : ""
+            } transition-transform rounded-[18px] ${isFlipped ? "rotate-y-180" : ""}`}
+          >
+            {/* ------------------------------------------------------------- */}
+            {/* FRONT SIDE: Large Google G + Google Logo + 5 Stars + NFC */}
+            {/* ------------------------------------------------------------- */}
+            <div
+              className="absolute inset-0 w-full h-full rounded-[18px] p-4 bg-[#f8f9fa] text-zinc-900 flex flex-col justify-between items-center text-center overflow-hidden backface-hidden border border-zinc-200/80 shadow-[0_18px_45px_rgba(0,0,0,0.12)] relative"
+              style={{
+                aspectRatio: "54 / 85.6",
+              }}
+            >
+              {/* TOP GOOGLE COLOR BAR */}
+              <div className="w-full pt-0.5">
+                <GoogleDiagonalBar />
+              </div>
+
+              {/* TOP RIGHT NFC SYMBOL */}
+              <div className="absolute top-4 right-4 text-zinc-700 bg-zinc-100/80 p-1 rounded-full border border-zinc-200/60 shadow-2xs">
+                <ContactlessNfcSymbol className="w-3.5 h-3.5" />
+              </div>
+
+              {/* CENTER GOOGLE HERO & STARS */}
+              <div className="flex flex-col items-center justify-center my-auto space-y-2">
+                {/* Google G Logo */}
+                <div className="drop-shadow-sm transition-transform hover:scale-105 duration-200">
+                  <GoogleGLogo className="w-20 h-20" />
+                </div>
+
+                {/* Google Wordmark Logotype */}
+                <div className="pt-0.5">
+                  <GoogleLogotype className="text-[26px] font-bold" />
+                </div>
+
+                {/* 5 Golden Stars */}
+                <div className="flex items-center gap-1.5 pt-1">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <Star
+                      key={star}
+                      className="w-4.5 h-4.5 text-[#FBBC05] fill-[#FBBC05] drop-shadow-[0_1px_4px_rgba(251,188,5,0.4)]"
+                    />
+                  ))}
+                </div>
+              </div>
+
+              {/* BOTTOM BRAND & BOTTOM COLOR BAR */}
+              <div className="w-full space-y-2 pb-0.5">
+                <div className="flex items-center justify-center gap-1 text-[11px] font-mono tracking-widest text-zinc-800 font-extrabold uppercase">
+                  <span>{displayBrand}</span>
+                  <span className="text-zinc-600">✦</span>
+                </div>
+                <GoogleDiagonalBar />
+              </div>
+            </div>
+
+            {/* ------------------------------------------------------------- */}
+            {/* BACK SIDE: We'd Love Your Feedback + 4-Color QR + Tap or Scan */}
+            {/* ------------------------------------------------------------- */}
+            <div
+              className="absolute inset-0 w-full h-full rounded-[18px] p-4 bg-[#f8f9fa] text-zinc-900 flex flex-col justify-between items-center text-center overflow-hidden rotate-y-180 backface-hidden border border-zinc-200/80 shadow-[0_18px_45px_rgba(0,0,0,0.12)] relative"
+              style={{
+                aspectRatio: "54 / 85.6",
+              }}
+            >
+              {/* TOP GOOGLE COLOR BAR */}
+              <div className="w-full pt-0.5">
+                <GoogleDiagonalBar />
+              </div>
+
+              {/* TOP HEADLINE */}
+              <div className="pt-2 space-y-0.5 z-10">
+                <p className="text-[10px] font-bold tracking-[0.16em] uppercase text-zinc-600">
+                  {headerSubtitle}
+                </p>
+                <h3 className="text-sm font-extrabold tracking-wider uppercase leading-tight text-zinc-950">
+                  {headerHeadline}
+                </h3>
+              </div>
+
+              {/* CENTER 4-COLOR FRAMED QR CODE */}
+              <div className="flex flex-col items-center justify-center my-auto">
+                <div className="relative p-2.5 bg-white rounded-xl shadow-md border border-zinc-200">
+                  {/* Top-Left Bracket (Red) */}
+                  <div className="absolute -top-1.5 -left-1.5 w-4 h-4 border-t-[3px] border-l-[3px] border-[#EA4335] rounded-tl-sm" />
+                  {/* Top-Right Bracket (Yellow) */}
+                  <div className="absolute -top-1.5 -right-1.5 w-4 h-4 border-t-[3px] border-r-[3px] border-[#FBBC05] rounded-tr-sm" />
+                  {/* Bottom-Left Bracket (Green) */}
+                  <div className="absolute -bottom-1.5 -left-1.5 w-4 h-4 border-b-[3px] border-l-[3px] border-[#34A853] rounded-bl-sm" />
+                  {/* Bottom-Right Bracket (Blue) */}
+                  <div className="absolute -bottom-1.5 -right-1.5 w-4 h-4 border-b-[3px] border-r-[3px] border-[#4285F4] rounded-br-sm" />
+
+                  {qrDataUrl ? (
+                    <img
+                      src={qrDataUrl}
+                      alt="Google Review QR"
+                      className="w-[84px] h-[84px] rounded object-contain block"
+                    />
+                  ) : (
+                    <div className="w-[84px] h-[84px] bg-zinc-100 rounded animate-pulse" />
+                  )}
+                </div>
+
+                {/* TAP OR SCAN Instruction */}
+                <p className="text-[9.5px] font-black tracking-[0.2em] uppercase mt-2.5 text-zinc-900">
+                  TAP OR SCAN
+                </p>
+              </div>
+
+              {/* BOTTOM BRAND & BOTTOM COLOR BAR */}
+              <div className="w-full space-y-2 pb-0.5">
+                <div className="flex items-center justify-between px-1 text-[9px] font-mono text-zinc-500">
+                  <span className="font-extrabold tracking-wider uppercase text-zinc-800">
+                    {displayBrand} ✦
+                  </span>
+                  {showActivationCode && activationCode ? (
+                    <span className="font-bold text-blue-600 bg-blue-50 px-1 rounded border border-blue-200">
+                      {activationCode}
+                    </span>
+                  ) : (
+                    <span>#{slug}</span>
+                  )}
+                </div>
+                <GoogleDiagonalBar />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {interactive && (
+          <button
+            onClick={() => setIsFlipped(!isFlipped)}
+            className="mt-3 flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-800 transition-colors font-medium"
+          >
+            <RotateCcw className="w-3.5 h-3.5" />
+            <span>Click to flip card ({isFlipped ? "Back: QR Code" : "Front: Google Logo"})</span>
+          </button>
+        )}
+      </div>
+    );
+  }
+
+  // =========================================================================
+  // DESIGN 2: MATTE OBSIDIAN BLACK & OTHER EDITIONS (From 1st Reference Image)
+  // =========================================================================
   const themeStyles = {
     matte_black: {
       cardBg: "bg-[#0d0f12] text-white border-zinc-800 shadow-[0_20px_50px_rgba(0,0,0,0.85)]",
@@ -142,11 +335,19 @@ export function GoogleReviewPortraitCard({
       footerColor: "text-emerald-400/60",
       backBg: "bg-[#04150e] text-emerald-200 border-emerald-900",
     },
-  }[theme];
+  }[theme as "matte_black" | "frost_white" | "midnight_navy" | "emerald_gold"] || {
+    cardBg: "bg-[#0d0f12] text-white border-zinc-800",
+    subtextColor: "text-zinc-400",
+    headlineColor: "text-white",
+    nfcWaveColor: "text-zinc-300",
+    tapScanBg: "text-zinc-200",
+    starColor: "text-amber-400 fill-amber-400",
+    footerColor: "text-zinc-500",
+    backBg: "bg-[#090a0d] text-zinc-300 border-zinc-800",
+  };
 
   return (
     <div className="flex flex-col items-center">
-      {/* 3D Perspective Card (Portrait standard 54mm x 85.6mm -> 254px x 402px at 1x) */}
       <div
         className="relative perspective-1000 select-none print:shadow-none print:border-none"
         style={{
@@ -161,39 +362,27 @@ export function GoogleReviewPortraitCard({
             interactive ? "cursor-pointer" : ""
           } transition-transform rounded-[18px] ${isFlipped ? "rotate-y-180" : ""}`}
         >
-          {/* ==================================================== */}
-          {/* FRONT SIDE (Match User Photo Exactly) */}
-          {/* ==================================================== */}
+          {/* FRONT */}
           <div
             className={`absolute inset-0 w-full h-full rounded-[18px] p-5 flex flex-col justify-between items-center text-center overflow-hidden backface-hidden border ${themeStyles.cardBg} relative`}
             style={{
               aspectRatio: "54 / 85.6",
             }}
           >
-            {/* Top Subtle Sheen / Texture */}
             <div className="absolute top-0 left-0 right-0 h-28 bg-gradient-to-b from-white/[0.04] to-transparent pointer-events-none" />
 
-            {/* TOP HEADER */}
             <div className="pt-2 z-10 space-y-0.5">
-              <p
-                className={`text-[9.5px] font-bold tracking-[0.18em] uppercase ${themeStyles.subtextColor}`}
-              >
+              <p className={`text-[9.5px] font-bold tracking-[0.18em] uppercase ${themeStyles.subtextColor}`}>
                 {headerSubtitle}
               </p>
-              <h3
-                className={`text-sm font-extrabold tracking-wider uppercase leading-tight ${themeStyles.headlineColor}`}
-              >
+              <h3 className={`text-sm font-extrabold tracking-wider uppercase leading-tight ${themeStyles.headlineColor}`}>
                 {headerHeadline}
               </h3>
             </div>
 
-            {/* NFC WAVES + QR CODE CENTER */}
             <div className="flex flex-col items-center z-10 my-auto">
               <div className="flex items-center justify-center gap-2.5">
-                {/* Left NFC Waves */}
                 <NfcLeftWaves className={`w-5 h-9 ${themeStyles.nfcWaveColor}`} />
-
-                {/* QR Code Container */}
                 <div className="p-1.5 bg-white rounded-xl shadow-lg border border-white/20">
                   {qrDataUrl ? (
                     <img
@@ -205,27 +394,19 @@ export function GoogleReviewPortraitCard({
                     <div className="w-[84px] h-[84px] bg-zinc-100 rounded-lg animate-pulse" />
                   )}
                 </div>
-
-                {/* Right NFC Waves */}
                 <NfcRightWaves className={`w-5 h-9 ${themeStyles.nfcWaveColor}`} />
               </div>
 
-              {/* TAP OR SCAN Instruction */}
-              <p
-                className={`text-[10px] font-black tracking-[0.2em] uppercase mt-2.5 ${themeStyles.tapScanBg}`}
-              >
+              <p className={`text-[10px] font-black tracking-[0.2em] uppercase mt-2.5 ${themeStyles.tapScanBg}`}>
                 TAP OR SCAN
               </p>
             </div>
 
-            {/* GOOGLE LOGO & 5 STARS SECTION */}
             <div className="flex flex-col items-center z-10 space-y-2 mb-1">
-              {/* Google G Logo */}
               <div className="drop-shadow-md transition-transform hover:scale-105 duration-200">
                 <GoogleGLogo className="w-14 h-14" />
               </div>
 
-              {/* 5 Golden Stars */}
               <div className="flex items-center gap-1.5">
                 {[1, 2, 3, 4, 5].map((star) => (
                   <Star
@@ -236,7 +417,6 @@ export function GoogleReviewPortraitCard({
               </div>
             </div>
 
-            {/* BOTTOM BRAND & METADATA */}
             <div className="w-full pt-1.5 border-t border-white/10 flex items-center justify-between z-10 text-[8.5px] font-mono">
               <div className="flex items-center gap-1">
                 <span className="font-bold tracking-widest uppercase opacity-80 text-white truncate max-w-[130px]">
@@ -255,9 +435,7 @@ export function GoogleReviewPortraitCard({
             </div>
           </div>
 
-          {/* ==================================================== */}
-          {/* BACK SIDE (Instructions + Specifications) */}
-          {/* ==================================================== */}
+          {/* BACK */}
           <div
             className={`absolute inset-0 w-full h-full rounded-[18px] p-5 flex flex-col justify-between text-left overflow-hidden rotate-y-180 backface-hidden border ${themeStyles.backBg} shadow-2xl`}
             style={{

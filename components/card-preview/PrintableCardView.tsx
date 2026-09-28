@@ -21,9 +21,9 @@ export function PrintableCardView({
   activationCode,
 }: PrintableCardViewProps) {
   const [layoutStyle, setLayoutStyle] = useState<"portrait_revuz" | "landscape_classic">("portrait_revuz");
-  const [theme, setTheme] = useState<"matte_black" | "frost_white" | "midnight_navy" | "emerald_gold">("matte_black");
-  const [subtitle, setSubtitle] = useState("HELP OTHERS DISCOVER US");
-  const [headline, setHeadline] = useState("REVIEW NOW!");
+  const [theme, setTheme] = useState<"white_revuz_edition" | "matte_black" | "frost_white" | "midnight_navy" | "emerald_gold">("white_revuz_edition");
+  const [subtitle, setSubtitle] = useState("WE'D LOVE");
+  const [headline, setHeadline] = useState("YOUR FEEDBACK");
   const [brandTag, setBrandTag] = useState(businessName || "REVUZ");
   const [showActivationKey, setShowActivationKey] = useState(false);
 
@@ -50,7 +50,7 @@ export function PrintableCardView({
         </div>
 
         <div className="flex items-center gap-2">
-          <Button onClick={handlePrint} variant="primary" size="sm" className="gap-1.5 bg-slate-900 text-white hover:bg-slate-800">
+          <Button onClick={handlePrint} variant="primary" size="sm" className="gap-1.5 bg-slate-900 text-white hover:bg-slate-800 font-bold">
             <Printer className="w-3.5 h-3.5" /> Print Card (CR80)
           </Button>
         </div>
@@ -94,20 +94,20 @@ export function PrintableCardView({
           </label>
           <div className="grid grid-cols-4 gap-1.5">
             {[
-              { key: "matte_black", name: "Black", bg: "bg-zinc-900", border: "border-zinc-700" },
-              { key: "frost_white", name: "White", bg: "bg-white", border: "border-slate-300" },
-              { key: "midnight_navy", name: "Navy", bg: "bg-blue-950", border: "border-blue-800" },
-              { key: "emerald_gold", name: "Emerald", bg: "bg-emerald-950", border: "border-emerald-800" },
+              { key: "white_revuz_edition", name: "Google White", bg: "bg-white border-2 border-red-500", label: "White" },
+              { key: "matte_black", name: "Matte Black", bg: "bg-zinc-900 border-zinc-700", label: "Black" },
+              { key: "midnight_navy", name: "Navy", bg: "bg-blue-950 border-blue-800", label: "Navy" },
+              { key: "emerald_gold", name: "Emerald", bg: "bg-emerald-950 border-emerald-800", label: "Emerald" },
             ].map((t) => (
               <button
                 key={t.key}
                 onClick={() => setTheme(t.key as any)}
                 title={t.name}
-                className={`h-8 rounded-lg ${t.bg} border ${t.border} flex items-center justify-center transition-transform ${
+                className={`h-8 rounded-lg ${t.bg} flex items-center justify-center transition-transform ${
                   theme === t.key ? "ring-2 ring-blue-500 scale-105" : "hover:opacity-90"
                 }`}
               >
-                {theme === t.key && <Check className={`w-3.5 h-3.5 ${t.key === "frost_white" ? "text-slate-900" : "text-white"}`} />}
+                {theme === t.key && <Check className={`w-3.5 h-3.5 ${t.key === "white_revuz_edition" ? "text-blue-600" : "text-white"}`} />}
               </button>
             ))}
           </div>
