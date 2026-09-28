@@ -3,12 +3,14 @@ import { INITIAL_BATCHES, INITIAL_BUSINESSES, INITIAL_CARDS, INITIAL_USERS, gene
 import { getActiveSupabaseClient, isSupabaseConfigured } from "@/lib/db/supabase";
 import fs from "fs";
 import path from "path";
+import crypto from "crypto";
 
 // ==========================================
-// LOCAL STORAGE FALLBACK & HYBRID ENGINE
+// LOCAL STORAGE & SERVERLESS HYBRID ENGINE
 // ==========================================
 const LOCAL_DB_DIR = path.join(process.cwd(), "data");
 const LOCAL_DB_PATH = path.join(LOCAL_DB_DIR, "store.json");
+const TMP_DB_PATH = path.join("/tmp", "nfcflow_store.json");
 
 interface DbData {
   users: User[];
@@ -43,6 +45,24 @@ function ensureDataDir(): void {
 
 function loadDb(): DbData {
   try {
+    // 1. Try reading from writable /tmp store first
+    if (fs.existsSync(TMP_DB_PATH)) {
+      const content = fs.readFileSync(TMP_DB_PATH, "utf-8");
+      const parsed = JSON.parse(content);
+      if (parsed && Array.isArray(parsed.cards)) {
+        inMemoryDb = parsed;
+        if (!inMemoryDb!.batches || inMemoryDb!.batches.length === 0) {
+          inMemoryDb!.batches = [...INITIAL_BATCHES];
+        }
+        return inMemoryDb!;
+      }
+    }
+  } catch {
+    // Fallthrough
+  }
+
+  try {
+    // 2. Try reading from bundled LOCAL_DB_PATH
     ensureDataDir();
     if (fs.existsSync(LOCAL_DB_PATH)) {
       const content = fs.readFileSync(LOCAL_DB_PATH, "utf-8");
@@ -78,12 +98,54 @@ function loadDb(): DbData {
 
 function saveDb(): void {
   if (!inMemoryDb) return;
+  const dataStr = JSON.stringify(inMemoryDb, null, 2);
+
+  // Try writing to local repo directory (development)
   try {
     ensureDataDir();
-    fs.writeFileSync(LOCAL_DB_PATH, JSON.stringify(inMemoryDb, null, 2), "utf-8");
+    fs.writeFileSync(LOCAL_DB_PATH, dataStr, "utf-8");
+  } catch {
+    // Read-only serverless filesystem
+  }
+
+  // Try writing to /tmp directory (production serverless / Vercel container persistence)
+  try {
+    fs.writeFileSync(TMP_DB_PATH, dataStr, "utf-8");
   } catch {
     // In read-only serverless environment, memory cache is maintained
   }
+}
+
+// Helper to sanitize destination type for legacy Supabase check constraints
+function sanitizeSupabaseDestinationType(type: DestinationType): string {
+  if (type === "menu" || type === "vcard") {
+    return "website";
+  }
+  return type;
+}
+
+// Helper to parse embedded tags from notes
+function parseCardNotes(notes?: string | null): {
+  activationCode?: string;
+  batchId?: string;
+  inventoryStatus?: InventoryStatus;
+  branch?: string;
+  originalType?: DestinationType;
+} {
+  if (!notes) return {};
+  const codeMatch = notes.match(/\[CODE:([A-Z0-9-]+)\]/i);
+  const batchMatch = notes.match(/\[BATCH:([^\]]+)\]/i);
+  const statusMatch = notes.match(/\[STATUS:([^\]]+)\]/i);
+  const branchMatch = notes.match(/\[BRANCH:([^\]]+)\]/i);
+  const typeMatch = notes.match(/\[TYPE:([^\]]+)\]/i);
+
+  return {
+    activationCode: codeMatch ? codeMatch[1] : undefined,
+    batchId: batchMatch ? batchMatch[1] : undefined,
+    inventoryStatus: statusMatch ? (statusMatch[1] as InventoryStatus) : undefined,
+    branch: branchMatch ? branchMatch[1] : undefined,
+    originalType: typeMatch ? (typeMatch[1] as DestinationType) : undefined,
+  };
 }
 
 // ==========================================
@@ -132,11 +194,12 @@ export async function getBusinessById(id: string): Promise<Business | null> {
     const client = getActiveSupabaseClient();
     if (client) {
       try {
-        const { data, error } = await client
-          .from("businesses")
-          .select("*")
-          .or(`id.eq.${id},slug.eq.${id}`)
-          .maybeSingle();
+        const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+        const query = isUuid
+          ? client.from("businesses").select("*").or(`id.eq.${id},slug.eq.${id}`).maybeSingle()
+          : client.from("businesses").select("*").eq("slug", id).maybeSingle();
+
+        const { data, error } = await query;
 
         if (!error && data) {
           return data as Business;
@@ -153,9 +216,10 @@ export async function getBusinessById(id: string): Promise<Business | null> {
 
 export async function createBusiness(input: Omit<Business, "id" | "created_at" | "updated_at">): Promise<Business> {
   const db = loadDb();
+  const validUuid = crypto.randomUUID();
   const newBusiness: Business = {
     ...input,
-    id: `biz_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+    id: validUuid,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
   };
@@ -167,27 +231,27 @@ export async function createBusiness(input: Omit<Business, "id" | "created_at" |
         const { data, error } = await client
           .from("businesses")
           .insert({
+            id: validUuid,
             name: input.name,
             slug: input.slug,
             phone: input.phone || null,
             email: input.email || null,
             address: input.address || null,
-            google_review_url: input.google_review_url,
+            google_review_url: input.google_review_url || "",
             website_url: input.website_url || null,
             whatsapp_number: input.whatsapp_number || null,
             instagram_handle: input.instagram_handle || null,
-            brand_color: input.brand_color || "#4f46e5",
+            brand_color: input.brand_color || "#059669",
             logo_url: input.logo_url || null,
             status: input.status || "active",
-            branch: input.branch || null,
           })
           .select()
           .single();
 
         if (!error && data) {
-          db.businesses.unshift(data as Business);
+          db.businesses.unshift({ ...newBusiness, ...data });
           saveDb();
-          return data as Business;
+          return { ...newBusiness, ...data };
         }
       } catch (e) {
         console.warn("Supabase createBusiness exception:", e);
@@ -205,18 +269,14 @@ export async function updateBusiness(id: string, updates: Partial<Business>): Pr
     const client = getActiveSupabaseClient();
     if (client) {
       try {
-        const { data, error } = await client
-          .from("businesses")
-          .update({
-            ...updates,
-            updated_at: new Date().toISOString(),
-          })
-          .or(`id.eq.${id},slug.eq.${id}`)
-          .select()
-          .maybeSingle();
+        const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+        const query = isUuid
+          ? client.from("businesses").update({ ...updates, updated_at: new Date().toISOString() }).or(`id.eq.${id},slug.eq.${id}`).select().maybeSingle()
+          : client.from("businesses").update({ ...updates, updated_at: new Date().toISOString() }).eq("slug", id).select().maybeSingle();
+
+        const { data, error } = await query;
 
         if (!error && data) {
-          // sync local
           const db = loadDb();
           const idx = db.businesses.findIndex((b) => b.id === id || b.slug === id);
           if (idx !== -1) {
@@ -249,9 +309,11 @@ export async function deleteBusiness(id: string): Promise<boolean> {
     const client = getActiveSupabaseClient();
     if (client) {
       try {
-        const { error } = await client.from("businesses").delete().or(`id.eq.${id},slug.eq.${id}`);
-        if (!error) {
-          // continue to clean local
+        const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+        if (isUuid) {
+          await client.from("businesses").delete().or(`id.eq.${id},slug.eq.${id}`);
+        } else {
+          await client.from("businesses").delete().eq("slug", id);
         }
       } catch (e) {
         console.warn("Supabase deleteBusiness exception:", e);
@@ -309,8 +371,15 @@ export async function getCards(
             const cardEvents = eventsList.filter(
               (e) => e.card_id === c.id || (e.slug && e.slug.toLowerCase() === c.slug.toLowerCase())
             );
+            const parsedNotes = parseCardNotes(c.notes);
+
             return {
               ...c,
+              activation_code: c.activation_code || parsedNotes.activationCode,
+              batch_id: c.batch_id || parsedNotes.batchId,
+              inventory_status: c.inventory_status || parsedNotes.inventoryStatus || (c.status === "active" ? "ACTIVE" : "GENERATED"),
+              branch: c.branch || parsedNotes.branch,
+              destination_type: parsedNotes.originalType || c.destination_type,
               business_name: c.businesses?.name || "Business Location",
               total_scans: cardEvents.length,
               nfc_scans: cardEvents.filter((e) => e.source === "nfc").length,
@@ -388,9 +457,15 @@ export async function getCardBySlug(slug: string): Promise<Card | null> {
             .or(`card_id.eq.${data.id},slug.ilike.${cleanSlug}`);
 
           const cardEvents = (eventsData || []) as Array<{ source: string }>;
+          const parsedNotes = parseCardNotes(data.notes);
 
           return {
             ...data,
+            activation_code: data.activation_code || parsedNotes.activationCode,
+            batch_id: data.batch_id || parsedNotes.batchId,
+            inventory_status: data.inventory_status || parsedNotes.inventoryStatus || (data.status === "active" ? "ACTIVE" : "GENERATED"),
+            branch: data.branch || parsedNotes.branch,
+            destination_type: parsedNotes.originalType || data.destination_type,
             business_name: data.businesses?.name || "Business Location",
             total_scans: cardEvents.length,
             nfc_scans: cardEvents.filter((e) => e.source === "nfc").length,
@@ -428,11 +503,12 @@ export async function getCardById(id: string): Promise<Card | null> {
     const client = getActiveSupabaseClient();
     if (client) {
       try {
-        const { data, error } = await client
-          .from("cards")
-          .select("*, businesses(name)")
-          .or(`id.eq.${cleanId},slug.ilike.${cleanId}`)
-          .maybeSingle();
+        const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(cleanId);
+        const query = isUuid
+          ? client.from("cards").select("*, businesses(name)").or(`id.eq.${cleanId},slug.ilike.${cleanId}`).maybeSingle()
+          : client.from("cards").select("*, businesses(name)").ilike("slug", cleanId).maybeSingle();
+
+        const { data, error } = await query;
 
         if (!error && data) {
           const { data: eventsData } = await client
@@ -441,9 +517,15 @@ export async function getCardById(id: string): Promise<Card | null> {
             .or(`card_id.eq.${data.id},slug.ilike.${cleanId}`);
 
           const cardEvents = (eventsData || []) as Array<{ source: string }>;
+          const parsedNotes = parseCardNotes(data.notes);
 
           return {
             ...data,
+            activation_code: data.activation_code || parsedNotes.activationCode,
+            batch_id: data.batch_id || parsedNotes.batchId,
+            inventory_status: data.inventory_status || parsedNotes.inventoryStatus || (data.status === "active" ? "ACTIVE" : "GENERATED"),
+            branch: data.branch || parsedNotes.branch,
+            destination_type: parsedNotes.originalType || data.destination_type,
             business_name: data.businesses?.name || "Business Location",
             total_scans: cardEvents.length,
             nfc_scans: cardEvents.filter((e) => e.source === "nfc").length,
@@ -488,6 +570,7 @@ export async function createCard(input: {
   notes?: string;
 }): Promise<Card> {
   const db = loadDb();
+  const cardUuid = crypto.randomUUID();
 
   // Check slug collision in local
   const existing = db.cards.find((c) => c.slug.toLowerCase() === input.slug.toLowerCase());
@@ -495,21 +578,24 @@ export async function createCard(input: {
     throw new Error(`Card slug '${input.slug}' is already in use. Please choose another.`);
   }
 
+  const actCode = input.activation_code || generateActivationCode();
+  const embeddedNotes = `[CODE:${actCode}][BATCH:${input.batch_id || ""}][STATUS:${input.inventory_status || "GENERATED"}][TYPE:${input.destination_type}] ${input.notes || ""}`.trim();
+
   const newCard: Card = {
-    id: `crd_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
-    business_id: input.business_id,
+    id: cardUuid,
+    business_id: input.business_id || "11111111-1111-1111-1111-111111111111",
     slug: input.slug,
     name: input.name,
     destination_type: input.destination_type,
     destination_url: input.destination_url,
     status: input.status || "draft",
     inventory_status: input.inventory_status || (input.status === "active" ? "ACTIVE" : "GENERATED"),
-    activation_code: input.activation_code || generateActivationCode(),
+    activation_code: actCode,
     batch_id: input.batch_id,
     branch: input.branch,
     nfc_programmed: false,
     qr_tested: false,
-    notes: input.notes,
+    notes: embeddedNotes,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
   };
@@ -524,19 +610,16 @@ export async function createCard(input: {
         await client
           .from("cards")
           .insert({
-            business_id: input.business_id || null,
+            id: cardUuid,
+            business_id: input.business_id || "11111111-1111-1111-1111-111111111111",
             slug: input.slug,
             name: input.name,
-            destination_type: input.destination_type,
-            destination_url: input.destination_url,
+            destination_type: sanitizeSupabaseDestinationType(input.destination_type),
+            destination_url: input.destination_url || "",
             status: input.status || "draft",
-            inventory_status: newCard.inventory_status,
-            activation_code: newCard.activation_code,
-            batch_id: input.batch_id || null,
-            branch: input.branch || null,
             nfc_programmed: false,
             qr_tested: false,
-            notes: input.notes || null,
+            notes: embeddedNotes,
           });
       } catch (e) {
         console.warn("Supabase createCard background sync note:", e);
@@ -547,9 +630,15 @@ export async function createCard(input: {
   return newCard;
 }
 
-export async function updateCard(id: string, updates: Partial<Card>): Promise<Card | null> {
+export async function updateCard(idOrSlug: string, updates: Partial<Card>): Promise<Card | null> {
   const db = loadDb();
-  const index = db.cards.findIndex((c) => c.id === id || c.slug.toLowerCase() === id.toLowerCase());
+  const cleanId = (idOrSlug || "").trim().toLowerCase();
+  const targetSlug = (updates.slug || (cleanId.length <= 12 ? cleanId : "")).toLowerCase();
+
+  const index = db.cards.findIndex(
+    (c) => c.id.toLowerCase() === cleanId || c.slug.toLowerCase() === cleanId || (targetSlug && c.slug.toLowerCase() === targetSlug)
+  );
+
   if (index !== -1) {
     db.cards[index] = {
       ...db.cards[index],
@@ -559,24 +648,65 @@ export async function updateCard(id: string, updates: Partial<Card>): Promise<Ca
     saveDb();
   }
 
+  let finalCard: Card | null = index !== -1 ? db.cards[index] : null;
+
   if (isSupabaseConfigured) {
     const client = getActiveSupabaseClient();
     if (client) {
       try {
-        await client
-          .from("cards")
-          .update({
-            ...updates,
-            updated_at: new Date().toISOString(),
-          })
-          .or(`id.eq.${id},slug.ilike.${id}`);
+        const supabaseUpdates: any = {
+          updated_at: new Date().toISOString(),
+        };
+        if (updates.name) supabaseUpdates.name = updates.name;
+        if (updates.destination_url !== undefined) supabaseUpdates.destination_url = updates.destination_url;
+        if (updates.status) supabaseUpdates.status = updates.status;
+        if (updates.business_id) supabaseUpdates.business_id = updates.business_id;
+        if (updates.destination_type) supabaseUpdates.destination_type = sanitizeSupabaseDestinationType(updates.destination_type);
+        if (updates.notes !== undefined) supabaseUpdates.notes = updates.notes;
+
+        const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(idOrSlug);
+
+        let query = isUuid
+          ? client.from("cards").update(supabaseUpdates).eq("id", idOrSlug)
+          : client.from("cards").update(supabaseUpdates).ilike("slug", targetSlug || idOrSlug);
+
+        const { data: updatedData, error } = await query.select("*, businesses(name)").maybeSingle();
+
+        if (!error && updatedData) {
+          const parsedNotes = parseCardNotes(updatedData.notes);
+          finalCard = {
+            ...updatedData,
+            activation_code: updatedData.activation_code || parsedNotes.activationCode || updates.activation_code,
+            batch_id: updatedData.batch_id || parsedNotes.batchId || updates.batch_id,
+            inventory_status: (updates.inventory_status || parsedNotes.inventoryStatus || (updatedData.status === "active" ? "ACTIVE" : "GENERATED")) as InventoryStatus,
+            branch: updates.branch || parsedNotes.branch,
+            destination_type: updates.destination_type || parsedNotes.originalType || updatedData.destination_type,
+            business_name: updatedData.businesses?.name || "Business Location",
+          };
+        } else if (targetSlug) {
+          const newUuid = isUuid ? idOrSlug : crypto.randomUUID();
+          const { data: insertedData, error: insErr } = await client.from("cards").insert({
+            id: newUuid,
+            slug: targetSlug.toUpperCase(),
+            name: updates.name || `NFCFlow Card ${targetSlug.toUpperCase()}`,
+            destination_type: sanitizeSupabaseDestinationType(updates.destination_type || "google_review"),
+            destination_url: updates.destination_url || "",
+            status: updates.status || "active",
+            business_id: updates.business_id || "11111111-1111-1111-1111-111111111111",
+            notes: updates.notes || `[STATUS:ACTIVE]`,
+          }).select("*, businesses(name)").maybeSingle();
+
+          if (!insErr && insertedData) {
+            finalCard = insertedData as Card;
+          }
+        }
       } catch (e) {
         console.warn("Supabase updateCard note:", e);
       }
     }
   }
 
-  return index !== -1 ? db.cards[index] : (await getCardById(id));
+  return finalCard || (await getCardBySlug(targetSlug || idOrSlug));
 }
 
 export async function deleteCard(id: string): Promise<boolean> {
@@ -589,7 +719,12 @@ export async function deleteCard(id: string): Promise<boolean> {
     const client = getActiveSupabaseClient();
     if (client) {
       try {
-        await client.from("cards").delete().or(`id.eq.${id},slug.ilike.${id}`);
+        const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+        if (isUuid) {
+          await client.from("cards").delete().or(`id.eq.${id},slug.ilike.${id}`);
+        } else {
+          await client.from("cards").delete().ilike("slug", id);
+        }
       } catch (e) {
         console.warn("Supabase deleteCard note:", e);
       }
@@ -640,7 +775,7 @@ export async function getBatches(): Promise<CardBatch[]> {
   }
 
   return batchesList.map((batch) => {
-    const batchCards = allCards.filter((c) => c.batch_id === batch.id || (c.notes && c.notes.includes(batch.batch_name)));
+    const batchCards = allCards.filter((c) => c.batch_id === batch.id || (c.notes && c.notes.includes(batch.id)) || (c.notes && c.notes.includes(batch.batch_name)));
     const activatedCount = batchCards.filter((c) => c.status === "active" || c.inventory_status === "ACTIVE").length;
     const inStockCount = batchCards.filter((c) => c.inventory_status === "IN_STOCK" || c.inventory_status === "PRINTED" || c.inventory_status === "GENERATED").length;
     const soldCount = batchCards.filter((c) => c.inventory_status === "SOLD").length;
@@ -682,9 +817,8 @@ export async function getBatchById(id: string): Promise<{ batch: CardBatch; card
 
   // Retrieve batch cards: check both local store db.cards and getCards()
   const allCards = await getCards();
-  let batchCards = allCards.filter((c) => c.batch_id === batch.id || (c.notes && c.notes.includes(batch.batch_name)));
+  let batchCards = allCards.filter((c) => c.batch_id === batch.id || (c.notes && c.notes.includes(batch.id)) || (c.notes && c.notes.includes(batch.batch_name)));
 
-  // Extra safety fallback: direct query in db.cards
   if (batchCards.length === 0) {
     batchCards = db.cards.filter((c) => c.batch_id === batch.id);
   }
@@ -739,15 +873,19 @@ export async function createBatch(input: {
 
   // Generate cards
   const generatedCards: Card[] = [];
+  const supabaseBatchCards: any[] = [];
+
   for (let i = 0; i < qty; i++) {
     const cardNum = startIdx + i;
     const padding = qty >= 1000 ? 6 : (qty >= 100 ? 4 : 3);
     const slug = `${cleanPrefix}${String(cardNum).padStart(padding, "0")}`;
     const activationCode = generateActivationCode();
+    const cardUuid = crypto.randomUUID();
+    const notesStr = `[CODE:${activationCode}][BATCH:${batchId}][STATUS:GENERATED] Generated in ${input.batch_name}`;
 
     const card: Card = {
-      id: `crd_${batchId}_${i + 1}`,
-      business_id: input.business_id || "",
+      id: cardUuid,
+      business_id: input.business_id || "11111111-1111-1111-1111-111111111111",
       slug: slug,
       name: `${input.product_type || "NFCFlow Card"} - ${slug}`,
       destination_type: "google_review",
@@ -758,7 +896,7 @@ export async function createBatch(input: {
       batch_id: batchId,
       nfc_programmed: true,
       qr_tested: true,
-      notes: `Generated in ${input.batch_name}`,
+      notes: notesStr,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
@@ -770,45 +908,34 @@ export async function createBatch(input: {
 
     generatedCards.push(card);
     db.cards.unshift(card);
+
+    supabaseBatchCards.push({
+      id: cardUuid,
+      business_id: input.business_id || "11111111-1111-1111-1111-111111111111",
+      slug: card.slug,
+      name: card.name,
+      destination_type: "google_review",
+      destination_url: "",
+      status: "draft",
+      nfc_programmed: true,
+      qr_tested: true,
+      notes: notesStr,
+    });
   }
 
   saveDb();
 
-  // Try background Supabase synchronization if configured
+  // Try background Supabase synchronization
   if (isSupabaseConfigured) {
     const client = getActiveSupabaseClient();
     if (client) {
       try {
-        await client.from("card_batches").insert({
-          id: batchId,
-          batch_name: newBatch.batch_name,
-          quantity: newBatch.quantity,
-          prefix: newBatch.prefix,
-          product_type: newBatch.product_type,
-          business_id: newBatch.business_id || null,
-          status: newBatch.status,
-        });
-
-        // Batch insert cards in chunks of 50
-        for (let c = 0; c < generatedCards.length; c += 50) {
-          const chunk = generatedCards.slice(c, c + 50).map((card) => ({
-            business_id: card.business_id || null,
-            slug: card.slug,
-            name: card.name,
-            destination_type: card.destination_type,
-            destination_url: card.destination_url || "",
-            status: card.status,
-            inventory_status: card.inventory_status,
-            activation_code: card.activation_code,
-            batch_id: batchId,
-            nfc_programmed: card.nfc_programmed,
-            qr_tested: card.qr_tested,
-            notes: card.notes,
-          }));
+        for (let c = 0; c < supabaseBatchCards.length; c += 25) {
+          const chunk = supabaseBatchCards.slice(c, c + 25);
           await client.from("cards").insert(chunk);
         }
       } catch (e) {
-        console.warn("Supabase createBatch background sync note:", e);
+        console.warn("Supabase createBatch cards sync note:", e);
       }
     }
   }
@@ -827,7 +954,6 @@ export async function updateBatch(id: string, updates: Partial<CardBatch>): Prom
     updated_at: new Date().toISOString(),
   };
 
-  // If batch status was updated, propagate to unactivated batch cards
   if (updates.status) {
     db.cards.forEach((c) => {
       if (c.batch_id === id && c.status !== "active") {
@@ -843,24 +969,6 @@ export async function updateBatch(id: string, updates: Partial<CardBatch>): Prom
   }
 
   saveDb();
-
-  if (isSupabaseConfigured) {
-    const client = getActiveSupabaseClient();
-    if (client) {
-      try {
-        await client
-          .from("card_batches")
-          .update({
-            ...updates,
-            updated_at: new Date().toISOString(),
-          })
-          .eq("id", id);
-      } catch (e) {
-        console.warn("Supabase updateBatch note:", e);
-      }
-    }
-  }
-
   return db.batches[index];
 }
 
@@ -868,7 +976,6 @@ export async function deleteBatch(id: string): Promise<boolean> {
   const db = loadDb();
   const initialLength = db.batches.length;
   db.batches = db.batches.filter((b) => b.id !== id);
-  // remove batch cards that are still in generated/draft state
   db.cards = db.cards.filter((c) => !(c.batch_id === id && c.status === "draft"));
   saveDb();
 
@@ -876,8 +983,7 @@ export async function deleteBatch(id: string): Promise<boolean> {
     const client = getActiveSupabaseClient();
     if (client) {
       try {
-        await client.from("card_batches").delete().eq("id", id);
-        await client.from("cards").delete().eq("batch_id", id);
+        await client.from("cards").delete().ilike("notes", `%${id}%`).eq("status", "draft");
       } catch (e) {
         console.warn("Supabase deleteBatch note:", e);
       }
@@ -903,7 +1009,7 @@ export async function verifyCardActivation(
   const cleanId = (cardIdentifier || "").trim().toLowerCase();
   const cleanCode = (activationCode || "").trim().toUpperCase().replace(/\s+/g, "");
 
-  const card = await getCardBySlug(cleanId) || await getCardById(cleanId);
+  const card = (await getCardBySlug(cleanId)) || (await getCardById(cleanId));
 
   if (!card) {
     return {
@@ -922,8 +1028,13 @@ export async function verifyCardActivation(
     };
   }
 
-  // Check activation code
-  const storedCode = (card.activation_code || "").trim().toUpperCase().replace(/\s+/g, "");
+  // Extract activation code from field or notes
+  let storedCode = (card.activation_code || "").trim().toUpperCase().replace(/\s+/g, "");
+  if (!storedCode && card.notes) {
+    const parsed = parseCardNotes(card.notes);
+    if (parsed.activationCode) storedCode = parsed.activationCode;
+  }
+
   if (!storedCode || storedCode !== cleanCode) {
     return {
       valid: false,
@@ -968,7 +1079,7 @@ export async function activateCardByCode(params: {
   const card = verification.card;
   const db = loadDb();
 
-  // Business Registration & Association (Mandatory tracking)
+  // Business Registration & Association
   let finalBiz: Business | null = null;
 
   if (params.business_id) {
@@ -980,7 +1091,7 @@ export async function activateCardByCode(params: {
     const cleanEmail = params.business_email?.trim().toLowerCase();
     const cleanPhone = params.business_phone?.trim();
 
-    // Check if business already exists by email, phone, or name
+    // Check existing business in local or remote
     const existingBiz = db.businesses.find(
       (b) =>
         (cleanEmail && b.email?.toLowerCase() === cleanEmail) ||
@@ -990,7 +1101,6 @@ export async function activateCardByCode(params: {
 
     if (existingBiz) {
       finalBiz = existingBiz;
-      // Update contact details if newly provided
       if ((!existingBiz.phone && cleanPhone) || (!existingBiz.email && cleanEmail) || (!existingBiz.address && params.business_address)) {
         await updateBusiness(existingBiz.id, {
           phone: existingBiz.phone || cleanPhone,
@@ -1000,7 +1110,6 @@ export async function activateCardByCode(params: {
         });
       }
     } else {
-      // Create new registered business
       const newSlugBase = cleanName.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "business";
       let uniqueSlug = newSlugBase;
       let counter = 1;
@@ -1022,7 +1131,6 @@ export async function activateCardByCode(params: {
         branch: params.branch?.trim() || "Main Location",
       });
 
-      // If email provided, create a user record if not exists
       if (cleanEmail && !db.users.some((u) => u.email.toLowerCase() === cleanEmail)) {
         const newUser: User = {
           id: `usr_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
@@ -1037,18 +1145,21 @@ export async function activateCardByCode(params: {
     }
   }
 
-  // Fallback to default if somehow no business was provided
-  const finalBizId = finalBiz ? finalBiz.id : (card.business_id || "biz_swasthya_medical");
+  const finalBizId = finalBiz ? finalBiz.id : (card.business_id || "11111111-1111-1111-1111-111111111111");
   const businessDisplayName = finalBiz ? finalBiz.name : "Your Business";
+  const finalCardName = params.card_name || `${businessDisplayName} - ${card.slug}`;
+  const finalNotes = `[CODE:${params.activationCode}][BATCH:${card.batch_id || ""}][STATUS:ACTIVE][BRANCH:${params.branch || "Main"}][TYPE:${params.destination_type}] Activated for ${businessDisplayName}`;
 
-  const updated = await updateCard(card.id, {
+  const updated = await updateCard(card.id || card.slug, {
+    slug: card.slug,
     business_id: finalBizId,
-    name: params.card_name || `${businessDisplayName} - ${card.slug}`,
+    name: finalCardName,
     destination_type: params.destination_type,
     destination_url: params.destination_url,
     status: "active",
     inventory_status: "ACTIVE",
     branch: params.branch?.trim() || finalBiz?.branch || card.branch,
+    notes: finalNotes,
     activated_at: new Date().toISOString(),
     tested_at: new Date().toISOString(),
   });
@@ -1074,9 +1185,10 @@ export async function activateCardByCode(params: {
 
 export async function recordScanEvent(event: Omit<RedirectEvent, "id">): Promise<RedirectEvent> {
   const db = loadDb();
+  const eventUuid = crypto.randomUUID();
   const newEvent: RedirectEvent = {
     ...event,
-    id: `evt_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+    id: eventUuid,
   };
 
   db.events.unshift(newEvent);
@@ -1086,12 +1198,17 @@ export async function recordScanEvent(event: Omit<RedirectEvent, "id">): Promise
     const client = getActiveSupabaseClient();
     if (client) {
       try {
+        const cardMatch = await client.from("cards").select("id, business_id").ilike("slug", event.slug).maybeSingle();
+        const finalCardId = cardMatch.data?.id || (event.card_id && event.card_id.includes("-") ? event.card_id : "33333333-3333-3333-3333-333333333331");
+        const finalBizId = cardMatch.data?.business_id || event.business_id || "11111111-1111-1111-1111-111111111111";
+
         await client
           .from("redirect_events")
           .insert({
-            card_id: event.card_id,
+            id: eventUuid,
+            card_id: finalCardId,
             slug: event.slug,
-            business_id: event.business_id || null,
+            business_id: finalBizId,
             source: event.source,
             device_type: event.device_type,
             user_agent: event.user_agent || null,
@@ -1200,7 +1317,6 @@ export async function getAnalyticsSummary(businessId?: string, cardId?: string):
     other: 0,
   };
 
-  // 14-day timeline map
   const dailyMap: { [dateStr: string]: { total: number; nfc: number; qr: number } } = {};
   for (let d = 13; d >= 0; d--) {
     const dt = new Date(now.getTime() - d * 86400000);
