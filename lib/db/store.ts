@@ -50,11 +50,14 @@ function loadDb(): DbData {
       const content = fs.readFileSync(TMP_DB_PATH, "utf-8");
       const parsed = JSON.parse(content);
       if (parsed && Array.isArray(parsed.cards)) {
-        inMemoryDb = parsed;
-        if (!inMemoryDb!.batches || inMemoryDb!.batches.length === 0) {
-          inMemoryDb!.batches = [...INITIAL_BATCHES];
-        }
-        return inMemoryDb!;
+        inMemoryDb = {
+          users: parsed.users || [],
+          businesses: parsed.businesses || [],
+          cards: parsed.cards || [],
+          batches: parsed.batches || [],
+          events: parsed.events || [],
+        };
+        return inMemoryDb;
       }
     }
   } catch {
@@ -68,28 +71,30 @@ function loadDb(): DbData {
       const content = fs.readFileSync(LOCAL_DB_PATH, "utf-8");
       const parsed = JSON.parse(content);
       if (parsed && Array.isArray(parsed.cards)) {
-        inMemoryDb = parsed;
-        if (!inMemoryDb!.batches || inMemoryDb!.batches.length === 0) {
-          inMemoryDb!.batches = [...INITIAL_BATCHES];
-        }
-        return inMemoryDb!;
+        inMemoryDb = {
+          users: parsed.users || [],
+          businesses: parsed.businesses || [],
+          cards: parsed.cards || [],
+          batches: parsed.batches || [],
+          events: parsed.events || [],
+        };
+        return inMemoryDb;
       }
     }
   } catch (err) {
-    console.warn("Failed reading local DB file, initializing default seed data:", err);
+    console.warn("Failed reading local DB file:", err);
   }
 
   if (inMemoryDb) {
     return inMemoryDb;
   }
 
-  // Initialize with seed data
   inMemoryDb = {
-    users: [...INITIAL_USERS],
-    businesses: [...INITIAL_BUSINESSES],
-    cards: [...INITIAL_CARDS],
-    batches: [...INITIAL_BATCHES],
-    events: generateSeedScanEvents(),
+    users: [],
+    businesses: [],
+    cards: [],
+    batches: [],
+    events: [],
   };
 
   saveDb();
@@ -1510,5 +1515,37 @@ export async function getAnalyticsSummary(businessId?: string, cardId?: string):
       direct: directScans,
     },
     daily_trends,
+  };
+}
+
+export async function wipeAllDatabaseData(): Promise<{ success: boolean; message: string }> {
+  // 1. Reset in-memory database
+  inMemoryDb = {
+    users: [],
+    businesses: [],
+    cards: [],
+    batches: [],
+    events: [],
+  };
+  saveDb();
+
+  // 2. Clear Supabase tables if configured
+  if (isSupabaseConfigured) {
+    const client = getActiveSupabaseClient();
+    if (client) {
+      try {
+        await client.from("redirect_events").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+        await client.from("cards").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+        await client.from("card_batches").delete().neq("id", "none");
+        await client.from("businesses").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+      } catch (err) {
+        console.warn("Supabase wipe note:", err);
+      }
+    }
+  }
+
+  return {
+    success: true,
+    message: "All cards, batches, scan events, and businesses deleted successfully.",
   };
 }

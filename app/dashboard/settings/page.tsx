@@ -173,10 +173,33 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000`;
     setTimeout(() => setCopiedSql(false), 2000);
   };
 
-  const copyEnv = () => {
-    navigator.clipboard.writeText(envTemplate);
-    setCopiedEnv(true);
-    setTimeout(() => setCopiedEnv(false), 2000);
+  const [isWiping, setIsWiping] = useState(false);
+  const [wipeSuccessMsg, setWipeSuccessMsg] = useState<string | null>(null);
+
+  const handleWipeAllData = async () => {
+    const confirmation = window.prompt(
+      "WARNING: This will permanently delete ALL cards, batches, scan logs, and businesses.\n\nType 'DELETE ALL' to confirm:"
+    );
+    if (confirmation !== "DELETE ALL") return;
+
+    setIsWiping(true);
+    setWipeSuccessMsg(null);
+
+    try {
+      const res = await fetch("/api/admin/wipe", { method: "POST" });
+      const json = await res.json();
+      if (json.success) {
+        setWipeSuccessMsg("All cards, batches, businesses, and scan events have been purged.");
+        checkStatus();
+        setTimeout(() => setWipeSuccessMsg(null), 6000);
+      } else {
+        alert(json.error || "Failed to wipe data");
+      }
+    } catch (err: any) {
+      alert("Wipe error: " + err.message);
+    } finally {
+      setIsWiping(false);
+    }
   };
 
   return (
@@ -455,6 +478,75 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000`;
             <p className="text-slate-600 text-[11px]">
               PostgreSQL policies permit public card lookup and scan insertion while securing business management endpoints.
             </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Danger Zone: Purge & Reset */}
+      <div className="bg-white border border-rose-200 rounded-xl p-6 shadow-xs space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-rose-100">
+          <div>
+            <h3 className="text-sm font-bold text-rose-900 flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4 text-rose-600" />
+              Danger Zone: Purge Database
+            </h3>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Permanently wipe all cards, batches, scan interaction events, and businesses for fresh manual testing.
+            </p>
+          </div>
+
+          <Button
+            onClick={handleWipeAllData}
+            disabled={isWiping}
+            variant="danger"
+            size="sm"
+            className="self-start sm:self-auto bg-rose-600 hover:bg-rose-700 text-white gap-1.5"
+          >
+            {isWiping ? (
+              <>
+                <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                <span>Purging Data...</span>
+              </>
+            ) : (
+              <>
+                <AlertTriangle className="w-3.5 h-3.5" />
+                <span>Purge All Database Data</span>
+              </>
+            )}
+          </Button>
+        </div>
+
+        {wipeSuccessMsg && (
+          <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-lg text-xs text-emerald-800 font-medium flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+            {wipeSuccessMsg}
+          </div>
+        )}
+
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
+          <div className="p-2.5 bg-slate-50 rounded-lg border border-slate-200">
+            <span className="text-[10px] text-slate-500 block">Total Cards</span>
+            <span className="text-sm font-bold text-slate-800 font-mono">
+              {status?.health?.counts?.cards || 0}
+            </span>
+          </div>
+          <div className="p-2.5 bg-slate-50 rounded-lg border border-slate-200">
+            <span className="text-[10px] text-slate-500 block">Businesses</span>
+            <span className="text-sm font-bold text-slate-800 font-mono">
+              {status?.health?.counts?.businesses || 0}
+            </span>
+          </div>
+          <div className="p-2.5 bg-slate-50 rounded-lg border border-slate-200">
+            <span className="text-[10px] text-slate-500 block">Scan Logs</span>
+            <span className="text-sm font-bold text-slate-800 font-mono">
+              {status?.health?.counts?.redirect_events || 0}
+            </span>
+          </div>
+          <div className="p-2.5 bg-slate-50 rounded-lg border border-slate-200">
+            <span className="text-[10px] text-slate-500 block">DB Mode</span>
+            <span className="text-xs font-semibold text-emerald-700">
+              {status?.health?.connected ? "Supabase Cloud" : "Local Store"}
+            </span>
           </div>
         </div>
       </div>
