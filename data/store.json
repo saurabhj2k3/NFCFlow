@@ -3756,6 +3756,16 @@
   ],
   "events": [
     {
+      "card_id": "699d802e-1fb7-45e5-99e0-7820d89b9a0f",
+      "slug": "WD0100",
+      "business_id": "11111111-1111-1111-1111-111111111111",
+      "source": "direct",
+      "device_type": "other",
+      "user_agent": "curl/8.21.0",
+      "scanned_at": "2026-09-28T17:34:42.979Z",
+      "id": "bf77b109-2c77-4fd2-a072-33de0d3eea3f"
+    },
+    {
       "card_id": "521378e3-bd6d-4c61-add8-f0b6e64dcb3c",
       "slug": "WD0095",
       "business_id": "53b562c2-3980-4c0a-b7f9-313096edb1ad",

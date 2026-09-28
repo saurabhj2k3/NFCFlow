@@ -1180,6 +1180,106 @@ export async function activateCardByCode(params: {
 }
 
 // ==========================================
+// CARD SELF-SERVICE MANAGEMENT (OWNER PORTAL)
+// ==========================================
+
+export async function verifyCardManagementAuth(
+  cardIdentifier: string,
+  activationCode: string
+): Promise<{
+  valid: boolean;
+  card?: Card;
+  business?: Business;
+  scanCount?: number;
+  message?: string;
+}> {
+  const cleanId = (cardIdentifier || "").trim().toLowerCase();
+  const cleanCode = (activationCode || "").trim().toUpperCase().replace(/\s+/g, "");
+
+  const card = (await getCardBySlug(cleanId)) || (await getCardById(cleanId));
+
+  if (!card) {
+    return {
+      valid: false,
+      message: `No NFCFlow card found with identifier "${cardIdentifier}". Please check your card ID.`,
+    };
+  }
+
+  // Extract activation code from field or notes
+  let storedCode = (card.activation_code || "").trim().toUpperCase().replace(/\s+/g, "");
+  if (!storedCode && card.notes) {
+    const parsed = parseCardNotes(card.notes);
+    if (parsed.activationCode) storedCode = parsed.activationCode;
+  }
+
+  if (!storedCode || storedCode !== cleanCode) {
+    return {
+      valid: false,
+      message: "The activation code does not match this card. Please check the secret code printed on your card envelope/box.",
+    };
+  }
+
+  let business: Business | undefined = undefined;
+  if (card.business_id) {
+    const b = await getBusinessById(card.business_id);
+    if (b) business = b;
+  }
+
+  const events = await getScanEvents({ card_id: card.id || card.slug });
+  const scanCount = events.length;
+
+  return {
+    valid: true,
+    card,
+    business,
+    scanCount,
+    message: "Card authenticated successfully!",
+  };
+}
+
+export async function updateCardDestinationByCode(params: {
+  cardIdentifier: string;
+  activationCode: string;
+  destination_type: DestinationType;
+  destination_url: string;
+  card_name?: string;
+}): Promise<{
+  success: boolean;
+  card?: Card;
+  message?: string;
+}> {
+  const auth = await verifyCardManagementAuth(params.cardIdentifier, params.activationCode);
+  if (!auth.valid || !auth.card) {
+    return {
+      success: false,
+      message: auth.message || "Invalid card or activation code",
+    };
+  }
+
+  const card = auth.card;
+  const updated = await updateCard(card.id || card.slug, {
+    destination_type: params.destination_type,
+    destination_url: params.destination_url.trim(),
+    name: params.card_name ? params.card_name.trim() : card.name,
+    status: "active",
+    tested_at: new Date().toISOString(),
+  });
+
+  if (!updated) {
+    return {
+      success: false,
+      message: "Failed to update card destination. Please try again.",
+    };
+  }
+
+  return {
+    success: true,
+    card: updated,
+    message: `Destination successfully updated to ${params.destination_type}!`,
+  };
+}
+
+// ==========================================
 // REDIRECT EVENT & SCAN LOGGING
 // ==========================================
 

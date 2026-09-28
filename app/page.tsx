@@ -93,16 +93,24 @@ export default function LandingPage() {
             <Sparkles className="w-3.5 h-3.5" />
             <span>Activate Card</span>
           </Link>
+          <Link href="/manage" className="text-indigo-600 font-semibold hover:text-indigo-700 flex items-center gap-1">
+            <span>Manage Card</span>
+          </Link>
         </nav>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2.5">
+          <Link href="/manage">
+            <Button variant="secondary" size="sm" className="hidden sm:inline-flex border-indigo-200 text-indigo-700 bg-indigo-50/60 hover:bg-indigo-100">
+              Manage Card
+            </Button>
+          </Link>
           <Link href="/activate">
             <Button variant="secondary" size="sm" className="hidden sm:inline-flex border-blue-200 text-blue-700 bg-blue-50/50 hover:bg-blue-100">
               <Sparkles className="w-3 h-3 text-blue-600" /> Activate
             </Button>
           </Link>
-          <Link href="/login" className="text-xs font-semibold text-slate-600 hover:text-slate-900 transition-colors">
-            Admin Login
+          <Link href="/login" className="text-xs font-semibold text-slate-600 hover:text-slate-900 transition-colors px-2">
+            Admin
           </Link>
           <Link href="/dashboard">
             <Button variant="primary" size="sm">

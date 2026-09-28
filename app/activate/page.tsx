@@ -560,12 +560,14 @@ function ActivateContent() {
               </div>
             </form>
 
-            <div className="pt-3 border-t border-slate-800 flex items-center justify-between text-[11px] text-slate-500">
+            <div className="pt-3 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-2 text-[11px] text-slate-400">
               <span className="flex items-center gap-1.5">
                 <ShieldCheck className="w-3.5 h-3.5 text-blue-400" />
                 Anti-tamper cryptographic activation key
               </span>
-              <span>Need help? support@nfcflow.in</span>
+              <Link href="/manage" className="text-blue-400 hover:text-blue-300 font-semibold underline">
+                Already active? Manage Card Link →
+              </Link>
             </div>
           </div>
         )}
@@ -1009,13 +1011,16 @@ function ActivateContent() {
               </a>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                <Link href="/dashboard" className="block">
+                <Link
+                  href={`/manage?card=${activatedCard?.slug || cardId}&code=${activationCode}`}
+                  className="block"
+                >
                   <Button
-                    variant="secondary"
+                    variant="primary"
                     size="md"
-                    className="w-full justify-center bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700 text-xs"
+                    className="w-full justify-center bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs"
                   >
-                    Go to Dashboard
+                    Manage Card & Update Link
                   </Button>
                 </Link>
 
@@ -1030,8 +1035,8 @@ function ActivateContent() {
               </div>
             </div>
 
-            <p className="text-[11px] text-slate-500 pt-2 border-t border-slate-800">
-              You can modify the destination URL or business profile anytime from the Dashboard without touching the physical card!
+            <p className="text-[11px] text-slate-400 pt-2 border-t border-slate-800">
+              Bookmark your Card ID (<span className="text-white font-mono">{activatedCard?.slug || cardId}</span>) and Activation Code (<span className="text-white font-mono">{activationCode}</span>). You can update your link anytime at <Link href="/manage" className="text-blue-400 underline font-medium">nfcflow.in/manage</Link> without touching the physical card!
             </p>
           </div>
         )}
