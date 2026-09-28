@@ -71,12 +71,19 @@ export default function CardsPage() {
       const res = await fetch(`/api/cards/${card.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: nextStatus }),
+        body: JSON.stringify({
+          status: nextStatus,
+          inventory_status: nextStatus === "active" ? "ACTIVE" : "GENERATED",
+        }),
       });
       const json = await res.json();
       if (json.success) {
         setCards((prev) =>
-          prev.map((c) => (c.id === card.id ? { ...c, status: nextStatus } : c))
+          prev.map((c) =>
+            c.id === card.id
+              ? { ...c, ...(json.data || {}), status: nextStatus, inventory_status: nextStatus === "active" ? "ACTIVE" : "GENERATED" }
+              : c
+          )
         );
       }
     } catch (err) {
@@ -330,7 +337,7 @@ export default function CardsPage() {
                           title="Click to toggle active / suspended"
                           className="text-left"
                         >
-                          <StatusBadge status={card.inventory_status || card.status} />
+                          <StatusBadge status={card.status} />
                         </button>
                       </td>
 

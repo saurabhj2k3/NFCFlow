@@ -372,7 +372,7 @@ export default function BatchDetailPage({
                     </td>
 
                     <td className="py-3 px-4">
-                      <StatusBadge status={card.inventory_status || card.status} />
+                      <StatusBadge status={card.status} />
                     </td>
 
                     <td className="py-3 px-4 text-center font-semibold text-slate-900 tabular-nums">
