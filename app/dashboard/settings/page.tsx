@@ -173,6 +173,12 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000`;
     setTimeout(() => setCopiedSql(false), 2000);
   };
 
+  const copyEnv = () => {
+    navigator.clipboard.writeText(envTemplate);
+    setCopiedEnv(true);
+    setTimeout(() => setCopiedEnv(false), 2000);
+  };
+
   const [isWiping, setIsWiping] = useState(false);
   const [wipeSuccessMsg, setWipeSuccessMsg] = useState<string | null>(null);
 

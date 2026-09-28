@@ -1,4 +1,4 @@
-import { AnalyticsSummary, BatchStatus, Business, Card, CardBatch, DestinationType, InventoryStatus, RedirectEvent, User } from "@/types";
+import { AnalyticsSummary, BatchStatus, Business, Card, CardBatch, CardPurpose, DestinationType, InventoryStatus, RedirectEvent, User } from "@/types";
 import { INITIAL_BATCHES, INITIAL_BUSINESSES, INITIAL_CARDS, INITIAL_USERS, generateSeedScanEvents } from "@/lib/mock-data";
 import { getActiveSupabaseClient, isSupabaseConfigured } from "@/lib/db/supabase";
 import fs from "fs";

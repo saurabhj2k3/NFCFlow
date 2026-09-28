@@ -25,7 +25,7 @@ import {
 import { Button } from "@/components/ui/Button";
 import { StatCard } from "@/components/ui/Card";
 import { StatusBadge } from "@/components/ui/Badge";
-import { CardBatch, Card } from "@/types";
+import { CardBatch, Card, CardPurpose } from "@/types";
 import { getCardRedirectUrl } from "@/lib/utils";
 
 function BatchQrCode({ url }: { url: string }) {
