@@ -384,6 +384,7 @@ export default function CardStudioDetailPage({
                 businessName={card.business_name || "Business Name"}
                 slug={card.slug}
                 destinationType={card.destination_type}
+                activationCode={card.activation_code}
               />
             </div>
           )}

@@ -30,6 +30,7 @@ import { StatusBadge } from "@/components/ui/Badge";
 import { CardBatch, Card } from "@/types";
 import { getCardRedirectUrl } from "@/lib/utils";
 import { QrDownloadModal } from "@/components/qr/QrDownloadModal";
+import { GoogleReviewPortraitCard } from "@/components/card-preview/GoogleReviewPortraitCard";
 
 function BatchQrCode({ url }: { url: string }) {
   const canvasRef = React.useRef<HTMLCanvasElement>(null);
@@ -69,6 +70,11 @@ export default function BatchDetailPage({
   const [copiedSlug, setCopiedSlug] = useState<string | null>(null);
   const [selectedCardForQr, setSelectedCardForQr] = useState<Card | null>(null);
   const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
+  const [printLayout, setPrintLayout] = useState<"portrait_cards" | "packaging_slips">("portrait_cards");
+  const [printTheme, setPrintTheme] = useState<"matte_black" | "frost_white" | "midnight_navy" | "emerald_gold">("matte_black");
+  const [printSubtitle, setPrintSubtitle] = useState("HELP OTHERS DISCOVER US");
+  const [printHeadline, setPrintHeadline] = useState("REVIEW NOW!");
+  const [printBrandTag, setPrintBrandTag] = useState("REVUZ");
 
   const loadBatchData = async () => {
     setIsLoading(true);
@@ -423,80 +429,186 @@ export default function BatchDetailPage({
         </div>
       </div>
 
-      {/* PRINT SLIPS MODAL */}
+      {/* PRINT SLIPS & CARD PRODUCTION MODAL */}
       {isPrintModalOpen && (
         <div className="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white border border-slate-200 rounded-2xl max-w-4xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in">
-            <div className="p-4 sm:p-5 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+          <div className="bg-white border border-slate-200 rounded-2xl max-w-5xl w-full max-h-[92vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in">
+            {/* Modal Header */}
+            <div className="p-4 sm:p-5 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50">
               <div>
                 <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
                   <Printer className="w-4 h-4 text-blue-600" />
-                  Printable Card Packaging Slips — {batch.batch_name}
+                  Batch Print & Production Studio — {batch.batch_name}
                 </h3>
                 <p className="text-xs text-slate-500">
-                  {cards.length} ready-to-print cards with QR code and secret activation keys
+                  {cards.length} cards ready to print for CR80 PVC printers (Fargo, Zebra, Evolis) or sheet printing
                 </p>
               </div>
+
               <div className="flex items-center gap-2">
                 <Button
                   onClick={() => window.print()}
                   variant="primary"
                   size="sm"
-                  className="bg-blue-600 text-white gap-1.5 text-xs"
+                  className="bg-slate-900 hover:bg-slate-800 text-white gap-1.5 text-xs font-bold px-4"
                 >
                   <Printer className="w-3.5 h-3.5" /> Print Sheet
                 </Button>
                 <button
                   onClick={() => setIsPrintModalOpen(false)}
-                  className="text-slate-400 hover:text-slate-600 text-lg leading-none p-1"
+                  className="text-slate-400 hover:text-slate-600 text-lg leading-none p-1.5"
                 >
                   ✕
                 </button>
               </div>
             </div>
 
-            <div className="p-6 overflow-y-auto space-y-6">
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                {cards.map((card) => {
-                  const redirectUrl = getCardRedirectUrl(card.slug);
-                  return (
-                    <div
-                      key={card.id}
-                      className="border border-dashed border-slate-300 rounded-xl p-4 bg-white flex flex-col justify-between space-y-3 relative shadow-xs"
-                    >
-                      <div className="flex items-start justify-between border-b border-slate-100 pb-2">
-                        <div>
-                          <span className="text-[10px] font-extrabold tracking-wider uppercase text-blue-600">
-                            NFCFlow Card
-                          </span>
-                          <p className="text-xs font-mono font-bold text-slate-900">{card.slug}</p>
-                        </div>
-                        <span className="text-[9px] px-1.5 py-0.5 bg-slate-100 rounded text-slate-600 font-mono">
-                          {batch.prefix}
-                        </span>
-                      </div>
+            {/* Print Customization Controls */}
+            <div className="p-4 border-b border-slate-200 bg-white grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+              {/* Layout Switcher */}
+              <div>
+                <label className="block text-[11px] font-bold text-slate-700 mb-1">Print Layout</label>
+                <div className="flex rounded-lg border border-slate-200 p-0.5 bg-slate-50">
+                  <button
+                    onClick={() => setPrintLayout("portrait_cards")}
+                    className={`flex-1 py-1 px-2 rounded-md font-medium text-center transition-all ${
+                      printLayout === "portrait_cards"
+                        ? "bg-blue-600 text-white shadow-xs"
+                        : "text-slate-600 hover:text-slate-900"
+                    }`}
+                  >
+                    Google Review Cards
+                  </button>
+                  <button
+                    onClick={() => setPrintLayout("packaging_slips")}
+                    className={`flex-1 py-1 px-2 rounded-md font-medium text-center transition-all ${
+                      printLayout === "packaging_slips"
+                        ? "bg-blue-600 text-white shadow-xs"
+                        : "text-slate-600 hover:text-slate-900"
+                    }`}
+                  >
+                    Packaging Slips
+                  </button>
+                </div>
+              </div>
 
-                      <div className="flex items-center gap-3">
-                        <div className="p-1 bg-white border border-slate-200 rounded-md">
-                          <BatchQrCode url={redirectUrl} />
-                        </div>
-                        <div className="space-y-1">
-                          <p className="text-[10px] text-slate-500">Activation Code:</p>
-                          <p className="font-mono text-xs font-extrabold text-blue-600 tracking-wider bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
-                            {card.activation_code || "XXXX-XXXX"}
-                          </p>
-                          <p className="text-[9px] text-slate-400">nfcflow.in/activate</p>
-                        </div>
-                      </div>
+              {/* Theme Picker */}
+              <div>
+                <label className="block text-[11px] font-bold text-slate-700 mb-1">Color Theme</label>
+                <select
+                  value={printTheme}
+                  onChange={(e) => setPrintTheme(e.target.value as any)}
+                  className="w-full bg-white border border-slate-200 rounded-lg py-1.5 px-2 text-xs font-medium text-slate-800"
+                >
+                  <option value="matte_black">Matte Obsidian Black (Revuz)</option>
+                  <option value="frost_white">Luxe Frost White</option>
+                  <option value="midnight_navy">Midnight Royal Navy</option>
+                  <option value="emerald_gold">Emerald Green & Gold</option>
+                </select>
+              </div>
 
-                      <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[9px] text-slate-400 font-mono truncate">
-                        <span>/r/{card.slug}</span>
-                        <span>{card.inventory_status || card.status}</span>
+              {/* Header Text Preset */}
+              <div>
+                <label className="block text-[11px] font-bold text-slate-700 mb-1">Top Headline</label>
+                <select
+                  value={`${printSubtitle}|${printHeadline}`}
+                  onChange={(e) => {
+                    const [sub, head] = e.target.value.split("|");
+                    setPrintSubtitle(sub);
+                    setPrintHeadline(head);
+                  }}
+                  className="w-full bg-white border border-slate-200 rounded-lg py-1.5 px-2 text-xs font-medium text-slate-800"
+                >
+                  <option value="HELP OTHERS DISCOVER US|REVIEW NOW!">HELP OTHERS DISCOVER US / REVIEW NOW!</option>
+                  <option value="WE'D LOVE|YOUR FEEDBACK">WE&apos;D LOVE / YOUR FEEDBACK</option>
+                  <option value="LEAVE US A REVIEW|RATE US 5-STARS">LEAVE US A REVIEW / RATE US 5-STARS</option>
+                  <option value="HOW WAS YOUR VISIT?|TAP TO REVIEW">HOW WAS YOUR VISIT? / TAP TO REVIEW</option>
+                </select>
+              </div>
+
+              {/* Bottom Brand Label */}
+              <div>
+                <label className="block text-[11px] font-bold text-slate-700 mb-1">Brand Tag</label>
+                <input
+                  type="text"
+                  value={printBrandTag}
+                  onChange={(e) => setPrintBrandTag(e.target.value)}
+                  placeholder="REVUZ or Business Name"
+                  className="w-full bg-white border border-slate-200 rounded-lg py-1.5 px-2 text-xs text-slate-800"
+                />
+              </div>
+            </div>
+
+            {/* Cards Print Canvas */}
+            <div className="p-6 overflow-y-auto space-y-6 bg-slate-100 flex-1">
+              {printLayout === "portrait_cards" ? (
+                /* GOOGLE REVIEW REVUZ-STYLE PORTRAIT CARDS GRID */
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-6 justify-items-center">
+                  {cards.map((card) => (
+                    <div key={card.id} className="flex flex-col items-center">
+                      <GoogleReviewPortraitCard
+                        slug={card.slug}
+                        businessName={printBrandTag || batch.batch_name}
+                        brandTag={printBrandTag}
+                        activationCode={card.activation_code}
+                        headerSubtitle={printSubtitle}
+                        headerHeadline={printHeadline}
+                        theme={printTheme}
+                        scale={0.95}
+                        interactive={false}
+                      />
+                      <div className="mt-2 text-[10px] font-mono text-slate-500 flex items-center gap-2">
+                        <span>Card #{card.slug}</span>
+                        <span>•</span>
+                        <span className="text-blue-600 font-bold">Key: {card.activation_code || "XXXX-XXXX"}</span>
                       </div>
                     </div>
-                  );
-                })}
-              </div>
+                  ))}
+                </div>
+              ) : (
+                /* PACKAGING SLIPS GRID */
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                  {cards.map((card) => {
+                    const redirectUrl = getCardRedirectUrl(card.slug);
+                    return (
+                      <div
+                        key={card.id}
+                        className="border border-dashed border-slate-300 rounded-xl p-4 bg-white flex flex-col justify-between space-y-3 relative shadow-xs"
+                      >
+                        <div className="flex items-start justify-between border-b border-slate-100 pb-2">
+                          <div>
+                            <span className="text-[10px] font-extrabold tracking-wider uppercase text-blue-600">
+                              NFCFlow Smart Card
+                            </span>
+                            <p className="text-xs font-mono font-bold text-slate-900">{card.slug}</p>
+                          </div>
+                          <span className="text-[9px] px-1.5 py-0.5 bg-slate-100 rounded text-slate-600 font-mono">
+                            {batch.prefix}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-3">
+                          <div className="p-1 bg-white border border-slate-200 rounded-md">
+                            <BatchQrCode url={redirectUrl} />
+                          </div>
+                          <div className="space-y-1">
+                            <p className="text-[10px] text-slate-500">Activation Code:</p>
+                            <p className="font-mono text-xs font-extrabold text-blue-600 tracking-wider bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
+                              {card.activation_code || "XXXX-XXXX"}
+                            </p>
+                            <p className="text-[9px] text-slate-400">nfcflow.in/activate</p>
+                          </div>
+                        </div>
+
+                        <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[9px] text-slate-400 font-mono truncate">
+                          <span>/r/{card.slug}</span>
+                          <span>{card.inventory_status || card.status}</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </div>
         </div>

@@ -1,42 +1,31 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { Wifi, Star, Smartphone, Printer } from "lucide-react";
+import React, { useState } from "react";
+import { Printer, Sparkles, LayoutGrid, Sliders, Palette, Check } from "lucide-react";
 import { Button } from "@/components/ui/Button";
-import { getCardRedirectUrl } from "@/lib/utils";
+import { GoogleReviewPortraitCard } from "@/components/card-preview/GoogleReviewPortraitCard";
+import { PvcCardPreview } from "@/components/card-preview/PvcCardPreview";
 
 interface PrintableCardViewProps {
   businessName: string;
   slug: string;
   brandColor?: string;
   destinationType?: string;
+  activationCode?: string;
 }
 
 export function PrintableCardView({
   businessName,
   slug,
-  brandColor = "#0f2e22",
+  brandColor = "#0d0f12",
+  activationCode,
 }: PrintableCardViewProps) {
-  const [qrDataUrl, setQrDataUrl] = useState<string>("");
-  const qrUrl = getCardRedirectUrl(slug, "qr");
-
-  useEffect(() => {
-    let isMounted = true;
-    import("qrcode").then((QRCode) => {
-      QRCode.toDataURL(qrUrl, {
-        width: 400,
-        margin: 1,
-        color: { dark: "#000000", light: "#ffffff" },
-        errorCorrectionLevel: "H",
-      }).then((url) => {
-        if (isMounted) setQrDataUrl(url);
-      });
-    }).catch(console.error);
-
-    return () => {
-      isMounted = false;
-    };
-  }, [qrUrl]);
+  const [layoutStyle, setLayoutStyle] = useState<"portrait_revuz" | "landscape_classic">("portrait_revuz");
+  const [theme, setTheme] = useState<"matte_black" | "frost_white" | "midnight_navy" | "emerald_gold">("matte_black");
+  const [subtitle, setSubtitle] = useState("HELP OTHERS DISCOVER US");
+  const [headline, setHeadline] = useState("REVIEW NOW!");
+  const [brandTag, setBrandTag] = useState(businessName || "REVUZ");
+  const [showActivationKey, setShowActivationKey] = useState(false);
 
   const handlePrint = () => {
     window.print();
@@ -44,100 +33,167 @@ export function PrintableCardView({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      {/* HEADER & CONTROLS */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 rounded-xl border border-slate-200 shadow-xs">
         <div>
-          <h3 className="text-sm font-semibold text-slate-900">
-            Standard PVC Card Print Layout (85.6 × 54 mm)
-          </h3>
+          <div className="flex items-center gap-2">
+            <h3 className="text-sm font-bold text-slate-900">
+              CR80 Smart PVC Card Print Studio
+            </h3>
+            <span className="px-2 py-0.5 bg-amber-50 text-amber-700 border border-amber-200 rounded-full text-[10px] font-bold flex items-center gap-1">
+              <Sparkles className="w-3 h-3" /> 5-Star Google Edition
+            </span>
+          </div>
           <p className="text-xs text-slate-500 mt-0.5">
-            Print layout ready for thermal CR80 PVC badge printers or dye-sublimation.
+            Thermal card printer ready (Fargo, Zebra, Evolis) or dye-sublimation PVC sheets (85.6 × 54 mm).
           </p>
         </div>
-        <Button onClick={handlePrint} variant="primary" size="sm">
-          <Printer className="w-3.5 h-3.5" /> Print Layout
-        </Button>
+
+        <div className="flex items-center gap-2">
+          <Button onClick={handlePrint} variant="primary" size="sm" className="gap-1.5 bg-slate-900 text-white hover:bg-slate-800">
+            <Printer className="w-3.5 h-3.5" /> Print Card (CR80)
+          </Button>
+        </div>
       </div>
 
-      <div id="printable-card-area" className="flex flex-col sm:flex-row items-center gap-6 justify-center p-6 bg-slate-100 border border-slate-200 rounded-xl">
-        {/* FRONT */}
-        <div
-          className="w-[324px] h-[204px] rounded-xl p-4 text-white flex flex-col justify-between shadow-sm relative overflow-hidden border border-slate-700/50 select-none"
-          style={{
-            backgroundColor: brandColor?.startsWith("#") ? brandColor : "#1e293b",
-          }}
-        >
-          <div className="flex items-start justify-between">
-            <div>
-              <p className="text-[9px] font-bold tracking-widest uppercase text-white/70">
-                Official Review Card
-              </p>
-              <h4 className="text-sm font-bold text-white tracking-tight leading-snug line-clamp-1">
-                {businessName}
-              </h4>
-            </div>
-            <div className="flex items-center gap-1 bg-white/20 px-2 py-0.5 rounded">
-              <Wifi className="w-3 h-3 text-white rotate-90" />
-              <span className="text-[9px] font-bold text-white">NFC</span>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-12 gap-2 items-center my-auto">
-            <div className="col-span-7 space-y-1">
-              <div className="flex items-center gap-1 text-white">
-                <Smartphone className="w-3.5 h-3.5" />
-                <span className="text-[11px] font-bold uppercase tracking-wider">
-                  Tap Phone Here
-                </span>
-              </div>
-              <p className="text-[9px] text-white/80 leading-tight">
-                Scan QR or tap to leave an honest review.
-              </p>
-              <div className="flex items-center gap-0.5 pt-0.5">
-                {[1, 2, 3, 4, 5].map((i) => (
-                  <Star key={i} className="w-3 h-3 fill-amber-400 text-amber-400" />
-                ))}
-                <span className="text-[9px] font-bold text-amber-300 ml-1">5.0</span>
-              </div>
-            </div>
-
-            <div className="col-span-5 flex justify-end">
-              <div className="p-1 bg-white rounded shadow-xs">
-                {qrDataUrl && (
-                  <img
-                    src={qrDataUrl}
-                    alt="QR"
-                    className="w-16 h-16 rounded object-contain"
-                  />
-                )}
-              </div>
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between text-[8px] text-white/70 border-t border-white/15 pt-1 font-mono">
-            <span>nfcflow.in</span>
-            <span>CARD ID: {slug}</span>
+      {/* CUSTOMIZATION TOOLBAR */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-3 bg-slate-50 p-4 rounded-xl border border-slate-200 text-xs">
+        {/* Layout Style */}
+        <div>
+          <label className="block text-[11px] font-bold text-slate-700 mb-1.5 flex items-center gap-1">
+            <LayoutGrid className="w-3.5 h-3.5 text-blue-600" /> Card Style
+          </label>
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={() => setLayoutStyle("portrait_revuz")}
+              className={`flex-1 py-1.5 px-2 rounded-lg font-medium text-center border transition-all ${
+                layoutStyle === "portrait_revuz"
+                  ? "bg-blue-600 text-white border-blue-600 shadow-xs"
+                  : "bg-white text-slate-700 border-slate-200 hover:bg-slate-100"
+              }`}
+            >
+              Portrait Google (Revuz)
+            </button>
+            <button
+              onClick={() => setLayoutStyle("landscape_classic")}
+              className={`flex-1 py-1.5 px-2 rounded-lg font-medium text-center border transition-all ${
+                layoutStyle === "landscape_classic"
+                  ? "bg-blue-600 text-white border-blue-600 shadow-xs"
+                  : "bg-white text-slate-700 border-slate-200 hover:bg-slate-100"
+              }`}
+            >
+              Landscape Classic
+            </button>
           </div>
         </div>
 
-        {/* BACK */}
-        <div className="w-[324px] h-[204px] rounded-xl p-4 bg-slate-900 text-slate-300 flex flex-col justify-between shadow-sm border border-slate-700 select-none">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-1">
-            <span className="text-[10px] font-bold text-white uppercase">
-              Instructions
+        {/* Color Theme */}
+        <div>
+          <label className="block text-[11px] font-bold text-slate-700 mb-1.5 flex items-center gap-1">
+            <Palette className="w-3.5 h-3.5 text-indigo-600" /> Color Theme
+          </label>
+          <div className="grid grid-cols-4 gap-1.5">
+            {[
+              { key: "matte_black", name: "Black", bg: "bg-zinc-900", border: "border-zinc-700" },
+              { key: "frost_white", name: "White", bg: "bg-white", border: "border-slate-300" },
+              { key: "midnight_navy", name: "Navy", bg: "bg-blue-950", border: "border-blue-800" },
+              { key: "emerald_gold", name: "Emerald", bg: "bg-emerald-950", border: "border-emerald-800" },
+            ].map((t) => (
+              <button
+                key={t.key}
+                onClick={() => setTheme(t.key as any)}
+                title={t.name}
+                className={`h-8 rounded-lg ${t.bg} border ${t.border} flex items-center justify-center transition-transform ${
+                  theme === t.key ? "ring-2 ring-blue-500 scale-105" : "hover:opacity-90"
+                }`}
+              >
+                {theme === t.key && <Check className={`w-3.5 h-3.5 ${t.key === "frost_white" ? "text-slate-900" : "text-white"}`} />}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Headline Preset */}
+        <div>
+          <label className="block text-[11px] font-bold text-slate-700 mb-1.5 flex items-center gap-1">
+            <Sliders className="w-3.5 h-3.5 text-emerald-600" /> Header Text
+          </label>
+          <select
+            value={`${subtitle}|${headline}`}
+            onChange={(e) => {
+              const [s, h] = e.target.value.split("|");
+              setSubtitle(s);
+              setHeadline(h);
+            }}
+            className="w-full bg-white border border-slate-200 rounded-lg py-1.5 px-2 text-xs font-medium text-slate-800 focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="HELP OTHERS DISCOVER US|REVIEW NOW!">HELP OTHERS DISCOVER US / REVIEW NOW!</option>
+            <option value="WE'D LOVE|YOUR FEEDBACK">WE&apos;D LOVE / YOUR FEEDBACK</option>
+            <option value="LEAVE US A REVIEW|RATE US 5-STARS">LEAVE US A REVIEW / RATE US 5-STARS</option>
+            <option value="HOW WAS YOUR VISIT?|TAP TO REVIEW">HOW WAS YOUR VISIT? / TAP TO REVIEW</option>
+          </select>
+        </div>
+
+        {/* Brand Label & Key Toggle */}
+        <div>
+          <label className="block text-[11px] font-bold text-slate-700 mb-1.5">Bottom Brand Tag</label>
+          <input
+            type="text"
+            value={brandTag}
+            onChange={(e) => setBrandTag(e.target.value)}
+            placeholder="REVUZ or Business Name"
+            className="w-full bg-white border border-slate-200 rounded-lg py-1.5 px-2 text-xs text-slate-800 focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+      </div>
+
+      {/* PRINTABLE PREVIEW CANVAS */}
+      <div id="printable-card-area" className="flex flex-col items-center justify-center p-8 bg-slate-100 border border-slate-200 rounded-2xl relative overflow-hidden">
+        {layoutStyle === "portrait_revuz" ? (
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-8">
+            <div className="flex flex-col items-center">
+              <span className="text-[11px] font-mono text-slate-500 mb-2 font-bold uppercase tracking-wider">
+                Front (Matte Finish)
+              </span>
+              <GoogleReviewPortraitCard
+                slug={slug}
+                businessName={businessName}
+                brandTag={brandTag}
+                activationCode={activationCode}
+                headerSubtitle={subtitle}
+                headerHeadline={headline}
+                theme={theme}
+                showActivationCode={showActivationKey}
+                scale={1.1}
+                interactive={true}
+              />
+            </div>
+          </div>
+        ) : (
+          <div className="flex flex-col items-center">
+            <span className="text-[11px] font-mono text-slate-500 mb-2 font-bold uppercase tracking-wider">
+              Landscape PVC Layout
             </span>
-            <span className="text-[8px] font-mono text-slate-400">NTAG213</span>
+            <PvcCardPreview
+              businessName={businessName}
+              slug={slug}
+              brandColor={theme === "matte_black" ? "#0d0f12" : (theme === "frost_white" ? "#ffffff" : brandColor)}
+            />
           </div>
+        )}
+      </div>
 
-          <div className="space-y-1.5 text-[9px] text-slate-300 my-auto">
-            <p><strong>1. Tap:</strong> Place top of iPhone or center of Android on the front.</p>
-            <p><strong>2. Scan:</strong> Open Camera and point at the QR code.</p>
-            <p><strong>3. Review:</strong> Opens business destination directly.</p>
-          </div>
-
-          <div className="flex items-center justify-between text-[8px] text-slate-400 border-t border-slate-800 pt-1 font-mono">
-            <span>Dynamic URL: nfcflow.in/r/{slug}</span>
-            <span>CR80 Size</span>
-          </div>
+      {/* Print Instructions Callout */}
+      <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 flex items-start gap-3 text-xs text-slate-600">
+        <div className="p-2 bg-blue-50 text-blue-600 rounded-lg shrink-0 mt-0.5">
+          <Printer className="w-4 h-4" />
+        </div>
+        <div className="space-y-1">
+          <p className="font-bold text-slate-900">Printing Guidelines for Card Manufacturers</p>
+          <p>
+            Standard CR80 dimensions: <strong>85.60 mm × 53.98 mm</strong> (3.375 × 2.125 inches) with 3.18 mm corner radius.
+            When printing via browser dialog, set Paper Size to <strong>CR80</strong> or <strong>Borderless</strong> with Scale at <strong>100%</strong>.
+          </p>
         </div>
       </div>
     </div>
