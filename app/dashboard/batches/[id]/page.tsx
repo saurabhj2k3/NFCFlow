@@ -74,7 +74,7 @@ export default function BatchDetailPage({
   const [printTheme, setPrintTheme] = useState<"white_revuz_edition" | "matte_black" | "frost_white" | "midnight_navy" | "emerald_gold">("white_revuz_edition");
   const [printSubtitle, setPrintSubtitle] = useState("WE'D LOVE");
   const [printHeadline, setPrintHeadline] = useState("YOUR FEEDBACK");
-  const [printBrandTag, setPrintBrandTag] = useState("REVUZ");
+  const [printBrandTag, setPrintBrandTag] = useState("NFCFlow");
 
   const loadBatchData = async () => {
     setIsLoading(true);
@@ -533,7 +533,7 @@ export default function BatchDetailPage({
                   type="text"
                   value={printBrandTag}
                   onChange={(e) => setPrintBrandTag(e.target.value)}
-                  placeholder="REVUZ or Business Name"
+                  placeholder="NFCFlow or Business Name"
                   className="w-full bg-white border border-slate-200 rounded-lg py-1.5 px-2 text-xs text-slate-800"
                 />
               </div>

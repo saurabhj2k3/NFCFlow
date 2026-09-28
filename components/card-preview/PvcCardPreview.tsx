@@ -119,8 +119,11 @@ export function PvcCardPreview({
               </div>
             </div>
 
-            <div className="flex items-end justify-between text-[9px] text-white/70 border-t border-white/15 pt-2 font-mono">
-              <span>nfcflow.in</span>
+            <div className="flex items-end justify-between text-[9px] text-white/80 border-t border-white/15 pt-2 font-mono">
+              <div className="flex items-center gap-1.5">
+                <img src="/logo.png" alt="NFCFlow" className="w-3.5 h-3.5 object-contain" />
+                <span className="font-sans font-black text-white text-[10.5px] tracking-tight">NFCFlow</span>
+              </div>
               <span>CARD ID: {slug}</span>
             </div>
           </div>

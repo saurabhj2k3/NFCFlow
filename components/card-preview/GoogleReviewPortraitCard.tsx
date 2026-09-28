@@ -79,13 +79,43 @@ export function ContactlessNfcSymbol({ className = "w-4 h-4 text-zinc-800" }: { 
   );
 }
 
-export function RevuzLogoMark({ isDark = false, className = "h-4" }: { isDark?: boolean; className?: string }) {
+export function NfcFlowBrandLogo({
+  isDark = false,
+  brandName = "NFCFlow",
+  logoUrl,
+  className = "h-4",
+}: {
+  isDark?: boolean;
+  brandName?: string;
+  logoUrl?: string;
+  className?: string;
+}) {
+  if (logoUrl) {
+    return (
+      <div className={`inline-flex items-center gap-1.5 ${className}`}>
+        <img
+          src={logoUrl}
+          alt={brandName}
+          className="h-4 sm:h-4.5 max-w-[85px] object-contain shrink-0"
+        />
+      </div>
+    );
+  }
+
   return (
-    <div className={`inline-flex items-center gap-1 font-sans font-black tracking-widest text-[11px] uppercase ${isDark ? "text-white" : "text-zinc-900"} ${className}`}>
-      <span>REVUZ</span>
-      <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 fill-current text-amber-500 shrink-0">
-        <path d="M12 0L14.5 9.5L24 12L14.5 14.5L12 24L9.5 14.5L0 12L9.5 9.5L12 0Z" />
-      </svg>
+    <div className={`inline-flex items-center gap-1.5 select-none ${className}`}>
+      <img
+        src="/logo.png"
+        alt="NFCFlow Logo"
+        className="w-4 h-4 object-contain shrink-0 drop-shadow-xs"
+      />
+      <span
+        className={`font-sans font-black text-[11px] tracking-tight ${
+          isDark ? "text-white" : "text-slate-950"
+        }`}
+      >
+        {brandName}
+      </span>
     </div>
   );
 }
@@ -154,35 +184,13 @@ export function GoogleReviewPortraitCard({
 
   // Brand Logo element to display at the bottom (using brand logo instead of plain text)
   const renderBrandFooterLogo = () => {
-    if (logoUrl) {
-      return (
-        <div className="flex items-center gap-1.5 max-h-5">
-          <img
-            src={logoUrl}
-            alt="Brand Logo"
-            className="h-4.5 max-w-[85px] object-contain shrink-0"
-          />
-        </div>
-      );
-    }
-
-    // Official brand logo icon (/logo.png) + brand name + star
+    const finalName = brandTag || businessName || "NFCFlow";
     return (
-      <div className="flex items-center gap-1.5 max-h-5">
-        <img
-          src="/logo.png"
-          alt="Brand Logo"
-          className="w-4 h-4 object-contain shrink-0"
-        />
-        <span
-          className={`font-black tracking-wider uppercase text-[9.5px] truncate max-w-[110px] ${
-            isDark ? "text-white" : "text-zinc-950"
-          }`}
-        >
-          {brandTag || businessName || "NFCFLOW"}
-        </span>
-        <span className="text-amber-500 font-black text-xs leading-none">✦</span>
-      </div>
+      <NfcFlowBrandLogo
+        isDark={isDark}
+        brandName={finalName}
+        logoUrl={logoUrl}
+      />
     );
   };
 

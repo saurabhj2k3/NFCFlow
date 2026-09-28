@@ -24,7 +24,7 @@ export function PrintableCardView({
   const [theme, setTheme] = useState<"white_revuz_edition" | "matte_black" | "frost_white" | "midnight_navy" | "emerald_gold">("white_revuz_edition");
   const [subtitle, setSubtitle] = useState("WE'D LOVE");
   const [headline, setHeadline] = useState("YOUR FEEDBACK");
-  const [brandTag, setBrandTag] = useState(businessName || "REVUZ");
+  const [brandTag, setBrandTag] = useState(businessName || "NFCFlow");
   const [showActivationKey, setShowActivationKey] = useState(false);
 
   const handlePrint = () => {
@@ -141,7 +141,7 @@ export function PrintableCardView({
             type="text"
             value={brandTag}
             onChange={(e) => setBrandTag(e.target.value)}
-            placeholder="REVUZ or Business Name"
+            placeholder="NFCFlow or Business Name"
             className="w-full bg-white border border-slate-200 rounded-lg py-1.5 px-2 text-xs text-slate-800 focus:ring-2 focus:ring-blue-500"
           />
         </div>
