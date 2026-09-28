@@ -160,6 +160,30 @@ function parseCardNotes(notes?: string | null): {
 // BUSINESS OPERATIONS
 // ==========================================
 
+export const SYSTEM_UNASSIGNED_BUSINESS_ID = "00000000-0000-0000-0000-000000000000";
+
+async function ensureSystemInventoryBusiness(client: any): Promise<void> {
+  try {
+    const { data } = await client
+      .from("businesses")
+      .select("id")
+      .eq("id", SYSTEM_UNASSIGNED_BUSINESS_ID)
+      .maybeSingle();
+
+    if (!data) {
+      await client.from("businesses").insert({
+        id: SYSTEM_UNASSIGNED_BUSINESS_ID,
+        name: "Unassigned Inventory Warehouse",
+        slug: "unassigned-warehouse",
+        google_review_url: "https://google.com",
+        status: "active",
+      });
+    }
+  } catch (err) {
+    // Ignore error
+  }
+}
+
 export async function getBusinesses(): Promise<Business[]> {
   const db = loadDb();
 
@@ -170,6 +194,8 @@ export async function getBusinesses(): Promise<Business[]> {
         const { data, error } = await client
           .from("businesses")
           .select("*")
+          .neq("id", SYSTEM_UNASSIGNED_BUSINESS_ID)
+          .neq("slug", "unassigned-warehouse")
           .order("created_at", { ascending: false });
 
         if (!error && data) {
@@ -181,7 +207,9 @@ export async function getBusinesses(): Promise<Business[]> {
     }
   }
 
-  return [...db.businesses];
+  return [...db.businesses].filter(
+    (b) => b.id !== SYSTEM_UNASSIGNED_BUSINESS_ID && b.slug !== "unassigned-warehouse"
+  );
 }
 
 export async function getBusinessById(id: string): Promise<Business | null> {
@@ -722,8 +750,14 @@ export async function getBatches(): Promise<CardBatch[]> {
   const db = loadDb();
   const allCards = await getCards();
 
-  let batchesList: CardBatch[] = [...db.batches];
+  const batchesMap = new Map<string, CardBatch>();
 
+  // 1. Add local db.batches if present
+  for (const b of db.batches) {
+    batchesMap.set(b.id, b);
+  }
+
+  // 2. Check Supabase card_batches table if available
   if (isSupabaseConfigured) {
     const client = getActiveSupabaseClient();
     if (client) {
@@ -733,76 +767,97 @@ export async function getBatches(): Promise<CardBatch[]> {
           .select("*")
           .order("created_at", { ascending: false });
 
-        if (!error && data) {
-          batchesList = data as CardBatch[];
+        if (!error && data && data.length > 0) {
+          for (const b of data as CardBatch[]) {
+            batchesMap.set(b.id, b);
+          }
         }
       } catch (e) {
-        console.warn("Supabase getBatches note:", e);
+        // card_batches table might not exist in Supabase schema
       }
     }
   }
 
-  return batchesList.map((batch) => {
-    const batchCards = allCards.filter((c) => c.batch_id === batch.id || (c.notes && c.notes.includes(batch.id)) || (c.notes && c.notes.includes(batch.batch_name)));
-    const activatedCount = batchCards.filter((c) => c.status === "active" || c.inventory_status === "ACTIVE").length;
-    const inStockCount = batchCards.filter((c) => c.inventory_status === "IN_STOCK" || c.inventory_status === "PRINTED" || c.inventory_status === "GENERATED").length;
+  // 3. Dynamically discover/reconstruct batches from allCards (cards stored in Supabase)
+  for (const card of allCards) {
+    const parsed = parseCardNotes(card.notes);
+    const batchId = card.batch_id || parsed.batchId;
+    if (!batchId) continue;
+
+    if (!batchesMap.has(batchId)) {
+      let bName = `Batch #${batchId.substring(0, 8)}`;
+      if (card.notes && card.notes.includes("Generated in ")) {
+        const parts = card.notes.split("Generated in ");
+        if (parts[1]) {
+          bName = parts[1].split("[")[0].trim();
+        }
+      }
+
+      const cardPrefix = card.slug.replace(/[0-9]/g, "") || "NF";
+
+      batchesMap.set(batchId, {
+        id: batchId,
+        batch_name: bName,
+        quantity: 0,
+        prefix: cardPrefix,
+        product_type: card.name.split(" - ")[0] || "NFCFlow CR80 NTAG213",
+        card_purpose: card.card_purpose || parsed.cardPurpose || "google_review",
+        business_id: card.business_id === SYSTEM_UNASSIGNED_BUSINESS_ID ? undefined : card.business_id,
+        status: "GENERATED",
+        created_at: card.created_at || new Date().toISOString(),
+        updated_at: card.updated_at || new Date().toISOString(),
+        cards_count: 0,
+        activated_count: 0,
+        in_stock_count: 0,
+        sold_count: 0,
+      });
+    }
+  }
+
+  // 4. Calculate accurate live counts for all batches
+  const result: CardBatch[] = [];
+  for (const [batchId, batch] of batchesMap.entries()) {
+    const batchCards = allCards.filter(
+      (c) => c.batch_id === batchId || (c.notes && c.notes.includes(batchId))
+    );
+    const activatedCount = batchCards.filter(
+      (c) => c.status === "active" || c.inventory_status === "ACTIVE"
+    ).length;
+    const inStockCount = batchCards.filter(
+      (c) =>
+        c.inventory_status === "IN_STOCK" ||
+        c.inventory_status === "PRINTED" ||
+        c.inventory_status === "GENERATED"
+    ).length;
     const soldCount = batchCards.filter((c) => c.inventory_status === "SOLD").length;
 
-    return {
+    result.push({
       ...batch,
+      quantity: batch.quantity || batchCards.length,
       cards_count: batchCards.length || batch.quantity,
       activated_count: activatedCount,
       in_stock_count: inStockCount,
       sold_count: soldCount,
-    };
-  });
+    });
+  }
+
+  return result.sort(
+    (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+  );
 }
 
 export async function getBatchById(id: string): Promise<{ batch: CardBatch; cards: Card[] } | null> {
-  const db = loadDb();
-  let batch = db.batches.find((b) => b.id === id);
-
-  if (!batch && isSupabaseConfigured) {
-    const client = getActiveSupabaseClient();
-    if (client) {
-      try {
-        const { data, error } = await client
-          .from("card_batches")
-          .select("*")
-          .eq("id", id)
-          .maybeSingle();
-
-        if (!error && data) {
-          batch = data as CardBatch;
-        }
-      } catch (e) {
-        console.warn("Supabase getBatchById note:", e);
-      }
-    }
-  }
-
+  const allBatches = await getBatches();
+  const batch = allBatches.find((b) => b.id === id);
   if (!batch) return null;
 
-  // Retrieve batch cards: check both local store db.cards and getCards()
   const allCards = await getCards();
-  let batchCards = allCards.filter((c) => c.batch_id === batch.id || (c.notes && c.notes.includes(batch.id)) || (c.notes && c.notes.includes(batch.batch_name)));
-
-  if (batchCards.length === 0) {
-    batchCards = db.cards.filter((c) => c.batch_id === batch.id);
-  }
-
-  const activatedCount = batchCards.filter((c) => c.status === "active" || c.inventory_status === "ACTIVE").length;
-  const inStockCount = batchCards.filter((c) => c.inventory_status === "IN_STOCK" || c.inventory_status === "PRINTED" || c.inventory_status === "GENERATED").length;
-  const soldCount = batchCards.filter((c) => c.inventory_status === "SOLD").length;
+  const batchCards = allCards.filter(
+    (c) => c.batch_id === batch.id || (c.notes && c.notes.includes(batch.id))
+  );
 
   return {
-    batch: {
-      ...batch,
-      cards_count: batchCards.length || batch.quantity,
-      activated_count: activatedCount,
-      in_stock_count: inStockCount,
-      sold_count: soldCount,
-    },
+    batch,
     cards: batchCards,
   };
 }
@@ -823,6 +878,7 @@ export async function createBatch(input: {
   const qty = Math.min(Math.max(1, Number(input.quantity) || 100), 1000);
   const purpose: CardPurpose = input.card_purpose || "google_review";
   const initialDestType: DestinationType = purpose === "universal" ? "google_review" : purpose;
+  const targetBizId = input.business_id || SYSTEM_UNASSIGNED_BUSINESS_ID;
 
   const newBatch: CardBatch = {
     id: batchId,
@@ -857,7 +913,7 @@ export async function createBatch(input: {
 
     const card: Card = {
       id: cardUuid,
-      business_id: input.business_id || "11111111-1111-1111-1111-111111111111",
+      business_id: targetBizId,
       slug: slug,
       name: `${input.product_type || "NFCFlow Card"} - ${slug}`,
       destination_type: initialDestType,
@@ -874,7 +930,6 @@ export async function createBatch(input: {
       updated_at: new Date().toISOString(),
     };
 
-    // Check if slug already exists; if so, append random suffix
     if (db.cards.some((c) => c.slug.toLowerCase() === slug.toLowerCase())) {
       card.slug = `${slug}-${Math.random().toString(36).substring(2, 5).toUpperCase()}`;
     }
@@ -884,7 +939,7 @@ export async function createBatch(input: {
 
     supabaseBatchCards.push({
       id: cardUuid,
-      business_id: input.business_id || "11111111-1111-1111-1111-111111111111",
+      business_id: targetBizId,
       slug: card.slug,
       name: card.name,
       destination_type: "google_review",
@@ -898,17 +953,33 @@ export async function createBatch(input: {
 
   saveDb();
 
-  // Try background Supabase synchronization
+  // Try Supabase synchronization
   if (isSupabaseConfigured) {
     const client = getActiveSupabaseClient();
     if (client) {
       try {
-        for (let c = 0; c < supabaseBatchCards.length; c += 25) {
-          const chunk = supabaseBatchCards.slice(c, c + 25);
+        await ensureSystemInventoryBusiness(client);
+
+        // Try inserting into card_batches table if available
+        try {
+          await client.from("card_batches").insert({
+            id: crypto.randomUUID(),
+            batch_name: input.batch_name,
+            quantity: qty,
+            prefix: cleanPrefix,
+            product_type: input.product_type || "NFCFlow CR80 NTAG213",
+            business_id: input.business_id || null,
+            status: "GENERATED",
+          });
+        } catch {}
+
+        // Insert cards in chunks of 50
+        for (let c = 0; c < supabaseBatchCards.length; c += 50) {
+          const chunk = supabaseBatchCards.slice(c, c + 50);
           await client.from("cards").insert(chunk);
         }
       } catch (e) {
-        console.warn("Supabase createBatch cards sync note:", e);
+        console.warn("Supabase createBatch cards sync exception:", e);
       }
     }
   }
@@ -919,14 +990,15 @@ export async function createBatch(input: {
 export async function updateBatch(id: string, updates: Partial<CardBatch>): Promise<CardBatch | null> {
   const db = loadDb();
   const index = db.batches.findIndex((b) => b.id === id);
-  if (index === -1) return null;
+  if (index !== -1) {
+    db.batches[index] = {
+      ...db.batches[index],
+      ...updates,
+      updated_at: new Date().toISOString(),
+    };
+  }
 
-  db.batches[index] = {
-    ...db.batches[index],
-    ...updates,
-    updated_at: new Date().toISOString(),
-  };
-
+  // Update card inventory statuses
   if (updates.status) {
     db.cards.forEach((c) => {
       if (c.batch_id === id && c.status !== "active") {
@@ -942,7 +1014,18 @@ export async function updateBatch(id: string, updates: Partial<CardBatch>): Prom
   }
 
   saveDb();
-  return db.batches[index];
+
+  if (isSupabaseConfigured) {
+    const client = getActiveSupabaseClient();
+    if (client) {
+      try {
+        await client.from("card_batches").update(updates).eq("id", id);
+      } catch {}
+    }
+  }
+
+  const allBatches = await getBatches();
+  return allBatches.find((b) => b.id === id) || (index !== -1 ? db.batches[index] : null);
 }
 
 export async function deleteBatch(id: string): Promise<boolean> {
@@ -957,13 +1040,14 @@ export async function deleteBatch(id: string): Promise<boolean> {
     if (client) {
       try {
         await client.from("cards").delete().ilike("notes", `%${id}%`).eq("status", "draft");
+        await client.from("card_batches").delete().eq("id", id);
       } catch (e) {
         console.warn("Supabase deleteBatch note:", e);
       }
     }
   }
 
-  return db.batches.length < initialLength;
+  return true;
 }
 
 // ==========================================

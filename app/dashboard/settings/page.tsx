@@ -77,19 +77,37 @@ CREATE TABLE IF NOT EXISTS public.businesses (
   brand_color TEXT DEFAULT '#4f46e5',
   logo_url TEXT,
   status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'inactive')),
+  branch TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- 3. Cards Table
+-- 3. Card Batches Table
+CREATE TABLE IF NOT EXISTS public.card_batches (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  batch_name TEXT NOT NULL,
+  quantity INTEGER NOT NULL DEFAULT 100,
+  prefix TEXT NOT NULL DEFAULT 'NF',
+  product_type TEXT NOT NULL DEFAULT 'NFCFlow CR80 NTAG213',
+  business_id UUID REFERENCES public.businesses(id) ON DELETE SET NULL,
+  status TEXT NOT NULL DEFAULT 'GENERATED' CHECK (status IN ('GENERATED', 'PRINTED', 'IN_STOCK', 'NFC_PROGRAMMED', 'COMPLETED')),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- 4. Cards Table
 CREATE TABLE IF NOT EXISTS public.cards (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  business_id UUID NOT NULL REFERENCES public.businesses(id) ON DELETE CASCADE,
+  business_id UUID REFERENCES public.businesses(id) ON DELETE CASCADE,
   slug TEXT UNIQUE NOT NULL,
   name TEXT NOT NULL,
-  destination_type TEXT NOT NULL DEFAULT 'google_review' CHECK (destination_type IN ('google_review', 'whatsapp', 'website', 'instagram', 'custom')),
+  destination_type TEXT NOT NULL DEFAULT 'google_review' CHECK (destination_type IN ('google_review', 'whatsapp', 'website', 'instagram', 'menu', 'vcard', 'custom')),
   destination_url TEXT NOT NULL,
-  status TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft', 'active', 'suspended', 'archived')),
+  status TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft', 'active', 'suspended', 'archived', 'in_stock', 'sold')),
+  inventory_status TEXT NOT NULL DEFAULT 'GENERATED',
+  activation_code TEXT,
+  batch_id UUID,
+  branch TEXT,
   nfc_programmed BOOLEAN DEFAULT FALSE,
   qr_tested BOOLEAN DEFAULT FALSE,
   notes TEXT,
@@ -97,12 +115,12 @@ CREATE TABLE IF NOT EXISTS public.cards (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- 4. Redirect Events Table (Analytics Telemetry)
+-- 5. Redirect Events Table (Analytics Telemetry)
 CREATE TABLE IF NOT EXISTS public.redirect_events (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   card_id UUID NOT NULL REFERENCES public.cards(id) ON DELETE CASCADE,
   slug TEXT NOT NULL,
-  business_id UUID NOT NULL REFERENCES public.businesses(id) ON DELETE CASCADE,
+  business_id UUID REFERENCES public.businesses(id) ON DELETE SET NULL,
   source TEXT NOT NULL DEFAULT 'direct' CHECK (source IN ('nfc', 'qr', 'direct', 'unknown')),
   device_type TEXT NOT NULL DEFAULT 'other' CHECK (device_type IN ('android', 'iphone', 'desktop', 'tablet', 'other')),
   user_agent TEXT,
@@ -111,7 +129,7 @@ CREATE TABLE IF NOT EXISTS public.redirect_events (
   scanned_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- Performance Indexes
+-- Indexes
 CREATE INDEX IF NOT EXISTS idx_cards_slug ON public.cards(slug);
 CREATE INDEX IF NOT EXISTS idx_cards_business ON public.cards(business_id);
 CREATE INDEX IF NOT EXISTS idx_redirect_events_card_id ON public.redirect_events(card_id);
@@ -121,26 +139,18 @@ CREATE INDEX IF NOT EXISTS idx_redirect_events_scanned_at ON public.redirect_eve
 -- Enable Row Level Security (RLS)
 ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.businesses ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.card_batches ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.cards ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.redirect_events ENABLE ROW LEVEL SECURITY;
 
--- Public read for card lookup during redirects
-CREATE POLICY "Public can lookup active cards by slug" 
-ON public.cards FOR SELECT USING (true);
-
--- Public can insert redirect events (analytics telemetry)
-CREATE POLICY "Public can insert redirect events" 
-ON public.redirect_events FOR INSERT WITH CHECK (true);
-
--- Authenticated / Service full access
-CREATE POLICY "Allow authenticated access to businesses" 
-ON public.businesses FOR ALL USING (true);
-
-CREATE POLICY "Allow authenticated access to cards" 
-ON public.cards FOR ALL USING (true);
-
-CREATE POLICY "Allow authenticated access to redirect_events" 
-ON public.redirect_events FOR ALL USING (true);`;
+-- Policies
+CREATE POLICY "Public can lookup active cards by slug" ON public.cards FOR SELECT USING (true);
+CREATE POLICY "Public can insert redirect events" ON public.redirect_events FOR INSERT WITH CHECK (true);
+CREATE POLICY "Allow all operations on businesses" ON public.businesses FOR ALL USING (true);
+CREATE POLICY "Allow all operations on batches" ON public.card_batches FOR ALL USING (true);
+CREATE POLICY "Allow all operations on cards" ON public.cards FOR ALL USING (true);
+CREATE POLICY "Allow all operations on redirect_events" ON public.redirect_events FOR ALL USING (true);
+CREATE POLICY "Allow all operations on users" ON public.users FOR ALL USING (true);`;
 
   const envTemplate = `# NFCFlow Supabase Configuration (.env.local)
 NEXT_PUBLIC_SUPABASE_URL=https://your-project-id.supabase.co
