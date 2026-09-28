@@ -131,6 +131,7 @@ function parseCardNotes(notes?: string | null): {
   inventoryStatus?: InventoryStatus;
   branch?: string;
   originalType?: DestinationType;
+  cardPurpose?: CardPurpose;
 } {
   if (!notes) return {};
   const codeMatch = notes.match(/\[CODE:([A-Z0-9-]+)\]/i);
@@ -138,6 +139,7 @@ function parseCardNotes(notes?: string | null): {
   const statusMatch = notes.match(/\[STATUS:([^\]]+)\]/i);
   const branchMatch = notes.match(/\[BRANCH:([^\]]+)\]/i);
   const typeMatch = notes.match(/\[TYPE:([^\]]+)\]/i);
+  const purposeMatch = notes.match(/\[PURPOSE:([^\]]+)\]/i);
 
   return {
     activationCode: codeMatch ? codeMatch[1] : undefined,
@@ -145,6 +147,7 @@ function parseCardNotes(notes?: string | null): {
     inventoryStatus: statusMatch ? (statusMatch[1] as InventoryStatus) : undefined,
     branch: branchMatch ? branchMatch[1] : undefined,
     originalType: typeMatch ? (typeMatch[1] as DestinationType) : undefined,
+    cardPurpose: purposeMatch ? (purposeMatch[1] as CardPurpose) : (typeMatch ? (typeMatch[1] as CardPurpose) : undefined),
   };
 }
 
@@ -377,6 +380,7 @@ export async function getCards(
               ...c,
               activation_code: c.activation_code || parsedNotes.activationCode,
               batch_id: c.batch_id || parsedNotes.batchId,
+              card_purpose: c.card_purpose || parsedNotes.cardPurpose || (c.destination_type === "custom" ? "universal" : c.destination_type) || "google_review",
               inventory_status: c.status === "active" ? (c.inventory_status || parsedNotes.inventoryStatus || "ACTIVE") : (c.status === "suspended" ? "GENERATED" : c.inventory_status || parsedNotes.inventoryStatus || "GENERATED"),
               branch: c.branch || parsedNotes.branch,
               destination_type: parsedNotes.originalType || c.destination_type,
@@ -463,6 +467,7 @@ export async function getCardBySlug(slug: string): Promise<Card | null> {
             ...data,
             activation_code: data.activation_code || parsedNotes.activationCode,
             batch_id: data.batch_id || parsedNotes.batchId,
+            card_purpose: data.card_purpose || parsedNotes.cardPurpose || (data.destination_type === "custom" ? "universal" : data.destination_type) || "google_review",
             inventory_status: data.status === "active" ? (data.inventory_status || parsedNotes.inventoryStatus || "ACTIVE") : (data.status === "suspended" ? "GENERATED" : data.inventory_status || parsedNotes.inventoryStatus || "GENERATED"),
             branch: data.branch || parsedNotes.branch,
             destination_type: parsedNotes.originalType || data.destination_type,
@@ -523,6 +528,7 @@ export async function getCardById(id: string): Promise<Card | null> {
             ...data,
             activation_code: data.activation_code || parsedNotes.activationCode,
             batch_id: data.batch_id || parsedNotes.batchId,
+            card_purpose: data.card_purpose || parsedNotes.cardPurpose || (data.destination_type === "custom" ? "universal" : data.destination_type) || "google_review",
             inventory_status: data.status === "active" ? (data.inventory_status || parsedNotes.inventoryStatus || "ACTIVE") : (data.status === "suspended" ? "GENERATED" : data.inventory_status || parsedNotes.inventoryStatus || "GENERATED"),
             branch: data.branch || parsedNotes.branch,
             destination_type: parsedNotes.originalType || data.destination_type,
@@ -844,6 +850,7 @@ export async function createBatch(input: {
   quantity: number;
   prefix: string;
   product_type: string;
+  card_purpose?: CardPurpose;
   business_id?: string;
   starting_index?: number;
 }): Promise<{ batch: CardBatch; cards: Card[] }> {
@@ -852,6 +859,8 @@ export async function createBatch(input: {
   const cleanPrefix = (input.prefix || "NF").trim().toUpperCase();
   const startIdx = input.starting_index || 1;
   const qty = Math.min(Math.max(1, Number(input.quantity) || 100), 1000);
+  const purpose: CardPurpose = input.card_purpose || "google_review";
+  const initialDestType: DestinationType = purpose === "universal" ? "google_review" : purpose;
 
   const newBatch: CardBatch = {
     id: batchId,
@@ -859,6 +868,7 @@ export async function createBatch(input: {
     quantity: qty,
     prefix: cleanPrefix,
     product_type: input.product_type || "NFCFlow CR80 NTAG213",
+    card_purpose: purpose,
     business_id: input.business_id,
     status: "GENERATED",
     created_at: new Date().toISOString(),
@@ -881,14 +891,15 @@ export async function createBatch(input: {
     const slug = `${cleanPrefix}${String(cardNum).padStart(padding, "0")}`;
     const activationCode = generateActivationCode();
     const cardUuid = crypto.randomUUID();
-    const notesStr = `[CODE:${activationCode}][BATCH:${batchId}][STATUS:GENERATED] Generated in ${input.batch_name}`;
+    const notesStr = `[CODE:${activationCode}][BATCH:${batchId}][PURPOSE:${purpose}][TYPE:${initialDestType}][STATUS:GENERATED] Generated in ${input.batch_name}`;
 
     const card: Card = {
       id: cardUuid,
       business_id: input.business_id || "11111111-1111-1111-1111-111111111111",
       slug: slug,
       name: `${input.product_type || "NFCFlow Card"} - ${slug}`,
-      destination_type: "google_review",
+      destination_type: initialDestType,
+      card_purpose: purpose,
       destination_url: "",
       status: "draft",
       inventory_status: "GENERATED",
@@ -1077,6 +1088,14 @@ export async function activateCardByCode(params: {
   }
 
   const card = verification.card;
+  const parsed = card.notes ? parseCardNotes(card.notes) : {};
+  const cardPurpose = card.card_purpose || parsed.cardPurpose || (card.destination_type === "custom" ? "universal" : card.destination_type);
+  if (cardPurpose && cardPurpose !== "universal" && cardPurpose !== "custom" && params.destination_type !== cardPurpose) {
+    return {
+      success: false,
+      message: `This card is manufactured exclusively for ${cardPurpose.replace("_", " ")} and cannot be activated as ${params.destination_type.replace("_", " ")}.`,
+    };
+  }
   const db = loadDb();
 
   // Business Registration & Association
@@ -1269,6 +1288,15 @@ export async function updateCardDestinationByCode(params: {
   }
 
   const card = auth.card;
+  const parsed = card.notes ? parseCardNotes(card.notes) : {};
+  const cardPurpose = card.card_purpose || parsed.cardPurpose || (card.destination_type === "custom" ? "universal" : card.destination_type);
+  if (cardPurpose && cardPurpose !== "universal" && cardPurpose !== "custom" && params.destination_type !== cardPurpose) {
+    return {
+      success: false,
+      message: `This card is manufactured exclusively for ${cardPurpose.replace("_", " ")}. You can update its link, but cannot change its destination type.`,
+    };
+  }
+
   const updated = await updateCard(card.id || card.slug, {
     destination_type: params.destination_type,
     destination_url: params.destination_url.trim(),

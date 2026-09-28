@@ -23,7 +23,7 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { batch_name, quantity, prefix, product_type, business_id, starting_index } = body;
+    const { batch_name, quantity, prefix, product_type, card_purpose, business_id, starting_index } = body;
 
     if (!batch_name || !quantity) {
       return NextResponse.json(
@@ -37,6 +37,7 @@ export async function POST(request: NextRequest) {
       quantity: Number(quantity),
       prefix: prefix || "NF",
       product_type: product_type || "NFCFlow CR80 NTAG213",
+      card_purpose: card_purpose || "google_review",
       business_id,
       starting_index: starting_index ? Number(starting_index) : 1,
     });

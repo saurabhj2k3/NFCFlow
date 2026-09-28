@@ -7,6 +7,8 @@ export type DestinationType =
   | "vcard"
   | "custom";
 
+export type CardPurpose = DestinationType | "universal";
+
 export type CardStatus = "draft" | "active" | "suspended" | "archived" | "in_stock" | "sold";
 
 export type InventoryStatus =
@@ -73,6 +75,7 @@ export interface CardBatch {
   quantity: number;
   prefix: string;
   product_type: string; // e.g. "NFCFlow CR80 NTAG213"
+  card_purpose?: CardPurpose;
   business_id?: string;
   status: BatchStatus;
   created_at: string;
@@ -91,6 +94,7 @@ export interface Card {
   slug: string; // e.g. "NF001", "X7k29P"
   name: string; // e.g. "Billing Counter 01"
   destination_type: DestinationType;
+  card_purpose?: CardPurpose;
   destination_url: string;
   status: CardStatus;
   inventory_status?: InventoryStatus;

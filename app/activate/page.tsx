@@ -804,45 +804,66 @@ function ActivateContent() {
             </div>
 
             <form onSubmit={handleActivate} className="space-y-6">
-              {/* Destination Preset Selector */}
-              <div>
-                <label className="block text-xs font-semibold text-slate-200 mb-2">
-                  Select Destination Type
-                </label>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
-                  {DESTINATION_OPTIONS.map((opt) => {
-                    const Icon = opt.icon;
-                    const isSelected = selectedType === opt.type;
-                    return (
-                      <button
-                        key={opt.type}
-                        type="button"
-                        onClick={() => {
-                          setSelectedType(opt.type);
-                          setErrorMsg(null);
-                        }}
-                        className={`p-3 rounded-xl border text-left transition-all flex flex-col justify-between gap-2.5 ${
-                          isSelected
-                            ? "bg-blue-600/15 border-blue-500 text-white shadow-md shadow-blue-500/10"
-                            : "bg-slate-950/60 border-slate-800 text-slate-400 hover:border-slate-700 hover:text-slate-200"
-                        }`}
-                      >
-                        <div
-                          className={`w-7 h-7 rounded-lg flex items-center justify-center ${
-                            isSelected ? "bg-blue-600 text-white" : "bg-slate-800 text-slate-400"
+              {/* Destination Preset Selector (Locked if Card is dedicated to specific purpose) */}
+              {verifiedCard?.card_purpose && verifiedCard.card_purpose !== "universal" && verifiedCard.card_purpose !== "custom" ? (
+                <div className="p-4 bg-blue-950/40 border border-blue-500/30 rounded-xl flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-md">
+                      <currentOption.icon className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-white flex items-center gap-2">
+                        <span>Dedicated {currentOption.title} Card</span>
+                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 font-mono font-semibold">
+                          LOCKED PURPOSE
+                        </span>
+                      </p>
+                      <p className="text-[11px] text-slate-400 mt-0.5">
+                        This physical card is manufactured exclusively for {currentOption.title}. Enter your destination details below.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  <label className="block text-xs font-semibold text-slate-200 mb-2">
+                    Select Destination Type
+                  </label>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
+                    {DESTINATION_OPTIONS.map((opt) => {
+                      const Icon = opt.icon;
+                      const isSelected = selectedType === opt.type;
+                      return (
+                        <button
+                          key={opt.type}
+                          type="button"
+                          onClick={() => {
+                            setSelectedType(opt.type);
+                            setErrorMsg(null);
+                          }}
+                          className={`p-3 rounded-xl border text-left transition-all flex flex-col justify-between gap-2.5 ${
+                            isSelected
+                              ? "bg-blue-600/15 border-blue-500 text-white shadow-md shadow-blue-500/10"
+                              : "bg-slate-950/60 border-slate-800 text-slate-400 hover:border-slate-700 hover:text-slate-200"
                           }`}
                         >
-                          <Icon className="w-4 h-4" />
-                        </div>
-                        <div>
-                          <p className="text-xs font-bold leading-none">{opt.title}</p>
-                          <p className="text-[10px] text-slate-400 mt-1 line-clamp-1">{opt.description}</p>
-                        </div>
-                      </button>
-                    );
-                  })}
+                          <div
+                            className={`w-7 h-7 rounded-lg flex items-center justify-center ${
+                              isSelected ? "bg-blue-600 text-white" : "bg-slate-800 text-slate-400"
+                            }`}
+                          >
+                            <Icon className="w-4 h-4" />
+                          </div>
+                          <div>
+                            <p className="text-xs font-bold leading-none">{opt.title}</p>
+                            <p className="text-[10px] text-slate-400 mt-1 line-clamp-1">{opt.description}</p>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Destination Input Field */}
               <div className="bg-slate-950/80 border border-slate-800 rounded-xl p-4 space-y-3">

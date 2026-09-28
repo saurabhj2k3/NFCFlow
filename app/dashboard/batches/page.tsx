@@ -63,6 +63,7 @@ export default function BatchesDashboardPage() {
   const [quantity, setQuantity] = useState("100");
   const [prefix, setPrefix] = useState("NF");
   const [productType, setProductType] = useState("NFCFlow CR80 NTAG213");
+  const [cardPurpose, setCardPurpose] = useState<CardPurpose>("google_review");
   const [startingIndex, setStartingIndex] = useState("1");
 
   const loadBatches = async () => {
@@ -100,6 +101,7 @@ export default function BatchesDashboardPage() {
           quantity: Number(quantity),
           prefix: prefix.trim().toUpperCase() || "NF",
           product_type: productType,
+          card_purpose: cardPurpose,
           starting_index: Number(startingIndex) || 1,
         }),
       });
@@ -446,6 +448,32 @@ export default function BatchesDashboardPage() {
                   <option value="NFCFlow Epoxy Keyfob / Token">NFCFlow Epoxy Keyfob / Token</option>
                   <option value="NFCFlow Metallic Review Card">NFCFlow Matte Metal Review Card</option>
                 </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Card Purpose &amp; Feature Lock
+                </label>
+                <select
+                  value={cardPurpose}
+                  onChange={(e) => setCardPurpose(e.target.value as CardPurpose)}
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 font-medium focus:outline-hidden focus:border-blue-500"
+                >
+                  <option value="google_review">🌟 Google Reviews Card (Owner locked to Google Reviews)</option>
+                  <option value="whatsapp">💬 WhatsApp Connect Card (Owner locked to WhatsApp)</option>
+                  <option value="instagram">📸 Instagram Follower Card (Owner locked to Instagram)</option>
+                  <option value="menu">🍽️ Restaurant Digital Menu Card (Owner locked to Menu)</option>
+                  <option value="vcard">📇 Digital Contact Business Card (Owner locked to vCard)</option>
+                  <option value="universal">⚡ Universal Multi-Purpose (Owner can choose any type)</option>
+                </select>
+                <p className="text-[11px] text-blue-600 font-medium mt-1">
+                  {cardPurpose === "google_review" && "🔒 Owners activating cards in this batch can ONLY configure Google Reviews."}
+                  {cardPurpose === "whatsapp" && "🔒 Owners activating cards in this batch can ONLY configure WhatsApp chat."}
+                  {cardPurpose === "instagram" && "🔒 Owners activating cards in this batch can ONLY configure Instagram."}
+                  {cardPurpose === "menu" && "🔒 Owners activating cards in this batch can ONLY link their digital menu."}
+                  {cardPurpose === "vcard" && "🔒 Owners activating cards in this batch can ONLY link their digital contact card."}
+                  {cardPurpose === "universal" && "⚡ Owners can freely select and switch between all destination types."}
+                </p>
               </div>
 
               <div>

@@ -555,49 +555,70 @@ function ManageCardContent() {
                   )}
 
                   <form onSubmit={handleSaveDestination} className="space-y-5">
-                    {/* Destination Presets */}
-                    <div>
-                      <label className="text-xs font-semibold text-slate-300 block mb-2">
-                        Select Destination Type
-                      </label>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                        {DESTINATION_PRESETS.map((preset) => {
-                          const Icon = preset.icon;
-                          const isSelected = selectedType === preset.type;
-                          return (
-                            <button
-                              key={preset.type}
-                              type="button"
-                              onClick={() => {
-                                setSelectedType(preset.type);
-                                if (!destinationUrl || destinationUrl === activePreset.placeholder) {
-                                  setDestinationUrl(preset.placeholder);
-                                }
-                              }}
-                              className={`p-3 rounded-xl border text-left flex items-start gap-3 transition-all ${
-                                isSelected
-                                  ? "bg-indigo-950/60 border-indigo-500 text-white ring-1 ring-indigo-500/50 shadow-md shadow-indigo-950/40"
-                                  : "bg-slate-950/60 border-slate-800 text-slate-300 hover:border-slate-700 hover:bg-slate-950"
-                              }`}
-                            >
-                              <div
-                                className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
-                                  isSelected ? "bg-indigo-600 text-white" : "bg-slate-800 text-slate-400"
+                    {/* Destination Presets (Locked if Card is dedicated to specific purpose) */}
+                    {card?.card_purpose && card.card_purpose !== "universal" && card.card_purpose !== "custom" ? (
+                      <div className="p-4 bg-indigo-950/40 border border-indigo-500/30 rounded-xl flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="w-9 h-9 rounded-xl bg-indigo-600 flex items-center justify-center text-white shadow-md">
+                            <activePreset.icon className="w-5 h-5" />
+                          </div>
+                          <div>
+                            <p className="text-xs font-bold text-white flex items-center gap-2">
+                              <span>Dedicated {activePreset.title} Card</span>
+                              <span className="text-[10px] px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 font-mono font-semibold">
+                                PURPOSE LOCKED
+                              </span>
+                            </p>
+                            <p className="text-[11px] text-slate-400 mt-0.5">
+                              This physical card is manufactured exclusively for {activePreset.title}. You can update its destination link below.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <div>
+                        <label className="text-xs font-semibold text-slate-300 block mb-2">
+                          Select Destination Type
+                        </label>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                          {DESTINATION_PRESETS.map((preset) => {
+                            const Icon = preset.icon;
+                            const isSelected = selectedType === preset.type;
+                            return (
+                              <button
+                                key={preset.type}
+                                type="button"
+                                onClick={() => {
+                                  setSelectedType(preset.type);
+                                  if (!destinationUrl || destinationUrl === activePreset.placeholder) {
+                                    setDestinationUrl(preset.placeholder);
+                                  }
+                                }}
+                                className={`p-3 rounded-xl border text-left flex items-start gap-3 transition-all ${
+                                  isSelected
+                                    ? "bg-indigo-950/60 border-indigo-500 text-white ring-1 ring-indigo-500/50 shadow-md shadow-indigo-950/40"
+                                    : "bg-slate-950/60 border-slate-800 text-slate-300 hover:border-slate-700 hover:bg-slate-950"
                                 }`}
                               >
-                                <Icon className="w-4 h-4" />
-                              </div>
-                              <div className="min-w-0 flex-1">
-                                <span className="text-xs font-bold block truncate">{preset.title}</span>
-                                <span className="text-[11px] text-slate-400 block line-clamp-1 mt-0.5">
-                                  {preset.description}
-                                </span>
-                              </div>
-                            </button>
-                          );
-                        })}
+                                <div
+                                  className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
+                                    isSelected ? "bg-indigo-600 text-white" : "bg-slate-800 text-slate-400"
+                                  }`}
+                                >
+                                  <Icon className="w-4 h-4" />
+                                </div>
+                                <div className="min-w-0 flex-1">
+                                  <span className="text-xs font-bold block truncate">{preset.title}</span>
+                                  <span className="text-[11px] text-slate-400 block line-clamp-1 mt-0.5">
+                                    {preset.description}
+                                  </span>
+                                </div>
+                              </button>
+                            );
+                          })}
+                        </div>
                       </div>
-                    </div>
+                    )}
 
                     {/* Target URL Input */}
                     <div>
