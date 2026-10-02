@@ -64,9 +64,9 @@ function LoginContent() {
       <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
         <Link href="/" className="inline-flex items-center gap-3 hover:opacity-90 transition-opacity mb-2">
           <img
-            src="/logo.png"
+            src="/logo-icon.png"
             alt="NFCFlow Logo"
-            className="h-14 w-auto object-contain"
+            className="h-12 w-12 object-contain"
           />
           <div className="text-left">
             <h1 className="text-2xl font-black text-slate-900 tracking-tight leading-tight">NFCFlow</h1>

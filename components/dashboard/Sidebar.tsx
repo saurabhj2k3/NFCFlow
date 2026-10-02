@@ -12,6 +12,7 @@ import {
   Plus,
   Sparkles,
   ExternalLink,
+  Printer,
 } from "lucide-react";
 
 export function Sidebar() {
@@ -23,6 +24,12 @@ export function Sidebar() {
       href: "/dashboard",
       icon: LayoutDashboard,
       exact: true,
+    },
+    {
+      label: "Bulk Card Generator",
+      href: "/dashboard/generator",
+      icon: Printer,
+      badge: "300 DPI",
     },
     {
       label: "Businesses",
@@ -52,9 +59,9 @@ export function Sidebar() {
         {/* Brand Logo */}
         <Link href="/dashboard" className="h-16 flex items-center gap-3 px-4 border-b border-slate-200 hover:opacity-90 transition-opacity">
           <img
-            src="/logo.png"
+            src="/logo-icon.png"
             alt="NFCFlow Logo"
-            className="h-10 w-auto object-contain shrink-0"
+            className="h-9 w-9 object-contain shrink-0"
           />
           <div className="flex flex-col">
             <span className="text-base font-extrabold tracking-tight text-slate-900 leading-none">NFCFlow</span>
@@ -74,14 +81,21 @@ export function Sidebar() {
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
+                className={`flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-colors ${
                   isActive
                     ? "bg-slate-100 text-slate-900 font-semibold"
                     : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
                 }`}
               >
-                <Icon className={`w-4 h-4 ${isActive ? "text-slate-900" : "text-slate-500"}`} />
-                <span>{item.label}</span>
+                <div className="flex items-center gap-2.5">
+                  <Icon className={`w-4 h-4 ${isActive ? "text-slate-900" : "text-slate-500"}`} />
+                  <span>{item.label}</span>
+                </div>
+                {item.badge && (
+                  <span className="text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-700 tracking-wider">
+                    {item.badge}
+                  </span>
+                )}
               </Link>
             );
           })}

@@ -32,3 +32,8 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# generated export files & runtime job store
+public/exports/
+data/print_jobs.json
+

@@ -1,10 +1,16 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Caveat } from "next/font/google";
 import "./globals.css";
 
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-sans",
+  display: "swap",
+});
+
+const caveat = Caveat({
+  subsets: ["latin"],
+  variable: "--font-script",
   display: "swap",
 });
 
@@ -15,11 +21,11 @@ export const metadata: Metadata = {
   icons: {
     icon: [
       { url: "/favicon.ico" },
-      { url: "/logo.png", type: "image/png" },
-      { url: "/favicon.png", type: "image/png" }
+      { url: "/favicon.png", type: "image/png" },
+      { url: "/logo-icon.png", type: "image/png" }
     ],
     shortcut: "/favicon.png",
-    apple: "/logo.png",
+    apple: "/logo-icon.png",
   },
 };
 
@@ -29,7 +35,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={inter.variable}>
+    <html lang="en" className={`${inter.variable} ${caveat.variable}`}>
       <body className="font-sans bg-slate-50 text-slate-900 min-h-screen antialiased">
         {children}
       </body>

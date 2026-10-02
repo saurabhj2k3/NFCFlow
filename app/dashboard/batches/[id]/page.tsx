@@ -212,7 +212,7 @@ export default function BatchDetailPage({
 
           <a
             href={`/api/batches/${batch.id}/export`}
-            download
+            download={`NFCFlow_Batch_${batch.id}_Cards.csv`}
             className="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-lg text-xs font-semibold transition-colors inline-flex items-center gap-1.5"
           >
             <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" />
