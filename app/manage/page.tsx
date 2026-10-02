@@ -299,9 +299,11 @@ function ManageCardContent() {
       <header className="border-b border-slate-800/80 bg-slate-900/60 backdrop-blur-md sticky top-0 z-40">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-bold text-sm shadow-md shadow-indigo-600/30">
-              ⚡
-            </div>
+            <img
+              src="/logo-icon.png"
+              alt="NFCFlow Logo"
+              className="w-8 h-8 object-contain"
+            />
             <span className="font-bold text-base tracking-tight text-white">
               NFC<span className="text-indigo-400">Flow</span>
             </span>

@@ -105,7 +105,7 @@ export function NfcFlowBrandLogo({
   return (
     <div className={`inline-flex items-center gap-1.5 select-none ${className}`}>
       <img
-        src="/logo.png"
+        src="/logo-icon.png"
         alt="NFCFlow Logo"
         className="w-4 h-4 object-contain shrink-0 drop-shadow-xs"
       />

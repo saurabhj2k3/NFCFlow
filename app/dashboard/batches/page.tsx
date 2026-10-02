@@ -177,6 +177,11 @@ export default function BatchesDashboardPage() {
         </div>
 
         <div className="flex items-center gap-2.5">
+          <Link href="/dashboard/generator">
+            <Button variant="secondary" size="md" className="border-blue-200 text-blue-700 bg-blue-50/70 hover:bg-blue-100 gap-1.5 font-semibold">
+              <Printer className="w-3.5 h-3.5 text-blue-600" /> Bulk Card Generator (300 DPI)
+            </Button>
+          </Link>
           <Button
             onClick={() => setIsCreateModalOpen(true)}
             variant="primary"
@@ -333,7 +338,7 @@ export default function BatchesDashboardPage() {
 
                         <a
                           href={`/api/batches/${batch.id}/export`}
-                          download
+                          download={`NFCFlow_Batch_${batch.id}_Cards.csv`}
                           className="px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-md text-xs font-medium transition-colors inline-flex items-center gap-1"
                           title="Export CSV for Factory/Printing"
                         >

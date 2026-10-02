@@ -3,55 +3,14 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import {
-  CreditCard,
-  Radio,
-  QrCode,
-  TrendingUp,
-  ShieldCheck,
-  Zap,
   ArrowRight,
-  Smartphone,
-  Star,
   CheckCircle2,
-  Play,
   Sparkles,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
-import { PvcCardPreview } from "@/components/card-preview/PvcCardPreview";
 
 export default function LandingPage() {
-  const [activeTab, setActiveTab] = useState<"swasthya" | "cafe" | "salon">("swasthya");
   const [footfall, setFootfall] = useState<number>(60);
-  const [testTapped, setTestTapped] = useState(false);
-
-  const demoCards = {
-    swasthya: {
-      name: "Swasthya Medical & General Store",
-      slug: "X7k29P",
-      brandColor: "#0f3e2b",
-      destination: "https://g.page/r/CbXx_swasthya_review/review",
-      destLabel: "Google Reviews Page",
-      category: "Pharmacy & Healthcare",
-    },
-    cafe: {
-      name: "Artisan Brew Specialty Cafe",
-      slug: "CAFE01",
-      brandColor: "#2b1c11",
-      destination: "https://g.page/r/CdYy_cafe_review/review",
-      destLabel: "Google Reviews",
-      category: "Restaurant & Cafe",
-    },
-    salon: {
-      name: "Glamour Luxe Hair & Spa",
-      slug: "GLAM01",
-      brandColor: "#3b1424",
-      destination: "https://instagram.com/glamourluxepune",
-      destLabel: "Instagram Profile",
-      category: "Salon & Wellness",
-    },
-  };
-
-  const currentDemo = demoCards[activeTab];
 
   // Review Growth Calculator Calculations
   const conversionRate = 0.18;
@@ -60,23 +19,15 @@ export default function LandingPage() {
   const currentReviews = 45;
   const projectedReviews = currentReviews + monthlyReviews * 6;
 
-  const simulateLiveTap = () => {
-    setTestTapped(true);
-    setTimeout(() => {
-      window.open(`/r/${currentDemo.slug}?source=nfc`, "_blank");
-      setTestTapped(false);
-    }, 400);
-  };
-
   return (
     <div className="min-h-screen bg-white text-slate-900 flex flex-col font-sans">
       {/* Navigation */}
       <header className="h-16 border-b border-slate-200 bg-white sticky top-0 z-40 px-6 sm:px-10 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-2.5 hover:opacity-90 transition-opacity">
           <img
-            src="/logo.png"
+            src="/logo-icon.png"
             alt="NFCFlow Logo"
-            className="h-11 w-auto object-contain"
+            className="h-10 w-10 object-contain"
           />
           <div className="flex flex-col">
             <span className="text-lg font-extrabold tracking-tight text-slate-900 leading-none">NFCFlow</span>
@@ -86,7 +37,6 @@ export default function LandingPage() {
 
         <nav className="hidden md:flex items-center gap-6 text-xs font-medium text-slate-600">
           <a href="#how-it-works" className="hover:text-slate-900 transition-colors">How It Works</a>
-          <a href="#simulator" className="hover:text-slate-900 transition-colors">Live Card Demo</a>
           <a href="#products" className="hover:text-slate-900 transition-colors">Product Catalog</a>
           <a href="#calculator" className="hover:text-slate-900 transition-colors">Review Calculator</a>
           <Link href="/activate" className="text-blue-600 font-semibold hover:text-blue-700 flex items-center gap-1">
@@ -121,7 +71,7 @@ export default function LandingPage() {
       </header>
 
       {/* Hero Section */}
-      <section className="pt-16 pb-20 px-6 sm:px-10 max-w-6xl mx-auto text-center">
+      <section className="pt-16 pb-16 px-6 sm:px-10 max-w-6xl mx-auto text-center">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-xs font-medium text-blue-800 mb-6">
           <Sparkles className="w-3.5 h-3.5 text-blue-600" />
           <span>Universal NFC + QR Cards • Online Activation • Zero Reprinting</span>
@@ -135,7 +85,7 @@ export default function LandingPage() {
           The physical card is only the entry point. The NFCFlow routing system gives businesses complete dynamic control to switch destinations anytime from Google Reviews to WhatsApp, Menus, or Websites in seconds.
         </p>
 
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-16">
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
           <Link href="/activate">
             <Button variant="primary" size="lg" className="bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-600/20 gap-2">
               <Sparkles className="w-4 h-4" /> Activate Received Card
@@ -146,104 +96,6 @@ export default function LandingPage() {
               Open Admin Dashboard <ArrowRight className="w-4 h-4" />
             </Button>
           </Link>
-        </div>
-
-        {/* Live Card Simulator Frame */}
-        <div id="simulator" className="bg-slate-50 border border-slate-200 rounded-2xl p-6 sm:p-8 max-w-4xl mx-auto text-left shadow-xs">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-200 mb-6">
-            <div>
-              <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                <Smartphone className="w-4 h-4 text-slate-700" />
-                Interactive PVC Card Simulator
-              </h3>
-              <p className="text-xs text-slate-500 mt-0.5">
-                Switch presets to test permanent URL routing and tap redirects
-              </p>
-            </div>
-
-            {/* Presets */}
-            <div className="flex items-center bg-white p-0.5 rounded-lg border border-slate-200 text-xs">
-              <button
-                onClick={() => setActiveTab("swasthya")}
-                className={`px-3 py-1 rounded-md font-medium transition-colors ${
-                  activeTab === "swasthya" ? "bg-slate-900 text-white font-semibold shadow-xs" : "text-slate-600 hover:text-slate-900"
-                }`}
-              >
-                Medical Store
-              </button>
-              <button
-                onClick={() => setActiveTab("cafe")}
-                className={`px-3 py-1 rounded-md font-medium transition-colors ${
-                  activeTab === "cafe" ? "bg-slate-900 text-white font-semibold shadow-xs" : "text-slate-600 hover:text-slate-900"
-                }`}
-              >
-                Coffee Cafe
-              </button>
-              <button
-                onClick={() => setActiveTab("salon")}
-                className={`px-3 py-1 rounded-md font-medium transition-colors ${
-                  activeTab === "salon" ? "bg-slate-900 text-white font-semibold shadow-xs" : "text-slate-600 hover:text-slate-900"
-                }`}
-              >
-                Luxe Salon
-              </button>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
-            {/* Card Mockup */}
-            <div className="md:col-span-6 flex flex-col items-center">
-              <PvcCardPreview
-                businessName={currentDemo.name}
-                slug={currentDemo.slug}
-                brandColor={currentDemo.brandColor}
-              />
-            </div>
-
-            {/* Live Routing Specs */}
-            <div className="md:col-span-6 space-y-4 text-xs">
-              <div className="p-4 bg-white border border-slate-200 rounded-xl space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-slate-500 font-medium">Permanent NFC / QR Slug:</span>
-                  <span className="font-mono text-slate-900 font-bold">/r/{currentDemo.slug}</span>
-                </div>
-                <div className="flex items-center justify-between pt-2 border-t border-slate-100">
-                  <span className="text-slate-500 font-medium">Live Destination:</span>
-                  <span className="font-semibold text-slate-900">{currentDemo.destLabel}</span>
-                </div>
-                <p className="font-mono text-slate-400 text-[11px] truncate pt-0.5">
-                  {currentDemo.destination}
-                </p>
-              </div>
-
-              <div className="space-y-1.5 text-slate-600">
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                  <span>Sub-300ms HTTP 302 temporary dynamic redirect</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                  <span>Real-time channel telemetry (NFC taps vs QR scans)</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                  <span>Card never needs to be reprinted when links change</span>
-                </div>
-              </div>
-
-              <div className="pt-2">
-                <Button
-                  onClick={simulateLiveTap}
-                  variant="primary"
-                  size="md"
-                  isLoading={testTapped}
-                  className="w-full justify-center"
-                >
-                  <Play className="w-3.5 h-3.5" /> Simulate NFC Tap & Test 302 Redirect
-                </Button>
-              </div>
-            </div>
-          </div>
         </div>
       </section>
 
@@ -528,9 +380,9 @@ export default function LandingPage() {
         <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <img
-              src="/logo.png"
+              src="/logo-icon.png"
               alt="NFCFlow Logo"
-              className="h-8 w-auto object-contain"
+              className="h-7 w-7 object-contain"
             />
             <span className="font-bold text-slate-800 text-sm">NFCFlow</span>
             <span className="text-slate-300">|</span>
