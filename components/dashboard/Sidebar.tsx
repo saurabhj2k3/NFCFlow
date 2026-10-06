@@ -29,7 +29,6 @@ export function Sidebar() {
       label: "Bulk Card Generator",
       href: "/dashboard/generator",
       icon: Printer,
-      badge: "300 DPI",
     },
     {
       label: "Businesses",
@@ -91,11 +90,6 @@ export function Sidebar() {
                   <Icon className={`w-4 h-4 ${isActive ? "text-slate-900" : "text-slate-500"}`} />
                   <span>{item.label}</span>
                 </div>
-                {item.badge && (
-                  <span className="text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-700 tracking-wider">
-                    {item.badge}
-                  </span>
-                )}
               </Link>
             );
           })}

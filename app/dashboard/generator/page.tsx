@@ -39,9 +39,7 @@ import {
 } from "@/lib/templates/types";
 import {
   parseCsvFile,
-  parseCsvString,
   validateCsvRows,
-  generateSampleCsvContent,
 } from "@/lib/csv/parser";
 
 export default function BulkGeneratorPage() {
@@ -175,36 +173,6 @@ export default function BulkGeneratorPage() {
       const valResult = validateCsvRows(csvRawRows, updated);
       setValidation(valResult);
     }
-  };
-
-  // Load Sample CSV
-  const handleLoadSampleCsv = () => {
-    setIsParsing(true);
-    try {
-      const sampleCsv = generateSampleCsvContent(24);
-      const parsed = parseCsvString(sampleCsv);
-      setCsvHeaders(parsed.headers);
-      setCsvRawRows(parsed.rows);
-      setMapping(parsed.detectedMapping);
-      setCsvFile(new File([sampleCsv], "nfcflow_sample_batch_24.csv", { type: "text/csv" }));
-
-      const valResult = validateCsvRows(parsed.rows, parsed.detectedMapping);
-      setValidation(valResult);
-    } finally {
-      setIsParsing(false);
-    }
-  };
-
-  // Download Sample CSV template
-  const handleDownloadSampleCsv = () => {
-    const sampleCsv = generateSampleCsvContent(10);
-    const blob = new Blob([sampleCsv], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "nfcflow_sample_bulk_cards.csv";
-    link.click();
-    URL.revokeObjectURL(url);
   };
 
   // Save modified template from editor
@@ -344,25 +312,6 @@ export default function BulkGeneratorPage() {
           <p className="text-xs text-slate-500 mt-1 max-w-2xl">
             Upload CSV with Card IDs &amp; URLs, apply reference Google Review CR80 templates, preview dynamic QR codes live, and export commercial 300 DPI print-ready PDFs and image packs.
           </p>
-        </div>
-
-        <div className="flex items-center gap-2.5">
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={handleDownloadSampleCsv}
-            className="flex items-center gap-1.5 text-xs"
-          >
-            <Download className="w-3.5 h-3.5 text-slate-600" /> Download Sample CSV
-          </Button>
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={handleLoadSampleCsv}
-            className="border-blue-200 text-blue-700 bg-blue-50 hover:bg-blue-100 flex items-center gap-1.5 text-xs font-semibold"
-          >
-            <Sparkles className="w-3.5 h-3.5 text-blue-600" /> Load Demo 24 Cards
-          </Button>
         </div>
       </div>
 
@@ -658,7 +607,7 @@ export default function BulkGeneratorPage() {
                     No CSV uploaded yet
                   </p>
                   <p className="text-xs text-slate-400 max-w-sm mx-auto">
-                    Upload your CSV manifest or click "Load Demo 24 Cards" to test the bulk generator.
+                    Upload your CSV manifest to begin card validation and bulk sheet generation.
                   </p>
                 </div>
               )}

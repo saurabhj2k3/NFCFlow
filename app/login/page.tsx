@@ -4,7 +4,6 @@ import React, { useState, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
-  ShieldCheck,
   Mail,
   Lock,
   ArrowRight,
@@ -81,16 +80,6 @@ function LoginContent() {
       {/* Main Form Box */}
       <div className="mt-6 sm:mx-auto sm:w-full sm:max-w-md px-4">
         <div className="bg-white py-8 px-6 sm:px-10 border border-slate-200 rounded-2xl shadow-xs space-y-5">
-          {/* Security Notice */}
-          <div className="flex items-start gap-2.5 p-3 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-600">
-            <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-            <div>
-              <span className="font-semibold text-slate-900">Protected Super Admin Console</span>
-              <p className="text-[11px] text-slate-500 mt-0.5">
-                Customer NFC taps and QR redirects continue operating publicly with zero authentication.
-              </p>
-            </div>
-          </div>
 
           {/* Success Message */}
           {successMessage && (
