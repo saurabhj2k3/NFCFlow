@@ -133,6 +133,7 @@ export interface GoogleReviewPortraitCardProps {
   showActivationCode?: boolean;
   scale?: number;
   interactive?: boolean;
+  showFlipButton?: boolean;
   onPrint?: () => void;
 }
 
@@ -149,6 +150,7 @@ export function GoogleReviewPortraitCard({
   showActivationCode = false,
   scale = 1,
   interactive = true,
+  showFlipButton = true,
 }: GoogleReviewPortraitCardProps) {
   const [isFlipped, setIsFlipped] = useState(false);
   const [qrDataUrl, setQrDataUrl] = useState<string>("");
@@ -340,7 +342,7 @@ export function GoogleReviewPortraitCard({
           </div>
         </div>
 
-        {interactive && (
+        {interactive && showFlipButton && (
           <button
             onClick={() => setIsFlipped(!isFlipped)}
             className="mt-3 flex items-center gap-1.5 text-xs text-slate-600 hover:text-slate-900 transition-colors font-medium"
@@ -576,7 +578,7 @@ export function GoogleReviewPortraitCard({
         </div>
       </div>
 
-      {interactive && (
+      {interactive && showFlipButton && (
         <button
           onClick={() => setIsFlipped(!isFlipped)}
           className="mt-3 flex items-center gap-1.5 text-xs text-slate-600 hover:text-slate-900 transition-colors font-medium"

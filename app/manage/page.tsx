@@ -294,9 +294,9 @@ function ManageCardContent() {
   const activePreset = DESTINATION_PRESETS.find((p) => p.type === selectedType) || DESTINATION_PRESETS[0];
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col selection:bg-indigo-500 selection:text-white">
+    <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col selection:bg-indigo-600 selection:text-white">
       {/* Top Navbar */}
-      <header className="border-b border-slate-800/80 bg-slate-900/60 backdrop-blur-md sticky top-0 z-40">
+      <header className="border-b border-slate-200 bg-white/95 backdrop-blur-md sticky top-0 z-40">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2.5">
             <img
@@ -304,10 +304,10 @@ function ManageCardContent() {
               alt="NFCFlow Logo"
               className="w-8 h-8 object-contain"
             />
-            <span className="font-bold text-base tracking-tight text-white">
-              NFC<span className="text-indigo-400">Flow</span>
+            <span className="font-bold text-base tracking-tight text-slate-900">
+              NFC<span className="text-indigo-600">Flow</span>
             </span>
-            <span className="text-[10px] font-mono font-medium px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700">
+            <span className="text-[10px] font-mono font-medium px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
               Owner Portal
             </span>
           </Link>
@@ -316,7 +316,7 @@ function ManageCardContent() {
             {isAuthenticated ? (
               <button
                 onClick={handleLogout}
-                className="text-xs text-slate-400 hover:text-white flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-slate-800 transition-colors"
+                className="text-xs text-slate-600 hover:text-slate-900 flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-slate-100 transition-colors"
               >
                 <LogOut className="w-3.5 h-3.5" />
                 Exit Portal
@@ -324,7 +324,7 @@ function ManageCardContent() {
             ) : (
               <Link
                 href="/activate"
-                className="text-xs text-indigo-400 hover:text-indigo-300 flex items-center gap-1 font-medium"
+                className="text-xs text-indigo-600 hover:text-indigo-700 flex items-center gap-1 font-medium"
               >
                 Activate New Card <ArrowRight className="w-3 h-3" />
               </Link>
@@ -341,52 +341,52 @@ function ManageCardContent() {
           /* ========================================================================= */
           <div className="max-w-md mx-auto">
             <div className="text-center mb-8">
-              <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-indigo-950/70 border border-indigo-500/30 text-indigo-400 mb-3 shadow-lg shadow-indigo-900/20">
+              <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-indigo-50 border border-indigo-200 text-indigo-600 mb-3 shadow-sm">
                 <KeyRound className="w-6 h-6" />
               </div>
-              <h1 className="text-2xl font-bold text-white tracking-tight">
+              <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
                 Manage Your NFC Card
               </h1>
-              <p className="text-xs sm:text-sm text-slate-400 mt-1.5">
+              <p className="text-xs sm:text-sm text-slate-500 mt-1.5">
                 Enter your Card ID and private activation code to view live scan statistics or update where your card redirects.
               </p>
             </div>
 
-            <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 sm:p-7 shadow-2xl backdrop-blur-xl">
+            <div className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-7 shadow-sm">
               {notActivatedInfo ? (
-                <div className="p-4 bg-amber-950/40 border border-amber-500/40 rounded-xl text-xs text-amber-200 mb-5 space-y-3 animate-in fade-in">
+                <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900 mb-5 space-y-3 animate-in fade-in">
                   <div className="flex items-start gap-2.5">
-                    <AlertCircle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                    <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
                     <div>
-                      <p className="font-bold text-amber-300">Card is not activated yet</p>
-                      <p className="text-[11px] text-amber-200/80 mt-0.5 leading-relaxed">
-                        Card <span className="font-mono text-white font-bold">{notActivatedInfo.slug}</span> must be registered to a business before you can manage its destination.
+                      <p className="font-bold text-amber-950">Card is not activated yet</p>
+                      <p className="text-[11px] text-amber-800/80 mt-0.5 leading-relaxed">
+                        Card <span className="font-mono text-slate-900 font-bold">{notActivatedInfo.slug}</span> must be registered to a business before you can manage its destination.
                       </p>
                     </div>
                   </div>
                   <Link
                     href={`/activate?card=${notActivatedInfo.slug}&code=${notActivatedInfo.code}`}
-                    className="w-full inline-flex items-center justify-center gap-1.5 py-2 px-3 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-lg text-xs transition-colors shadow-xs"
+                    className="w-full inline-flex items-center justify-center gap-1.5 py-2 px-3 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold rounded-lg text-xs transition-colors shadow-xs"
                   >
                     <span>Activate Card & Register Business</span>
                     <ArrowRight className="w-3.5 h-3.5" />
                   </Link>
                 </div>
               ) : authError ? (
-                <div className="p-3.5 bg-rose-950/40 border border-rose-800/60 rounded-xl text-xs text-rose-300 mb-5 flex items-start gap-2.5">
-                  <AlertCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
+                <div className="p-3.5 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 mb-5 flex items-start gap-2.5">
+                  <AlertCircle className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
                   <span>{authError}</span>
                 </div>
               ) : null}
 
               <form onSubmit={handleVerify} className="space-y-4">
                 <div>
-                  <label className="text-xs font-semibold text-slate-300 block mb-1.5 flex items-center justify-between">
+                  <label className="text-xs font-semibold text-slate-700 block mb-1.5 flex items-center justify-between">
                     <span>Card Identifier (Slug or ID)</span>
-                    <span className="text-[10px] text-slate-500 font-normal">Printed on card</span>
+                    <span className="text-[10px] text-slate-400 font-normal">Printed on card</span>
                   </label>
                   <div className="relative">
-                    <CreditCard className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" />
+                    <CreditCard className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
                     <input
                       type="text"
                       required
@@ -396,25 +396,25 @@ function ManageCardContent() {
                         setAuthError(null);
                       }}
                       placeholder="e.g. WD0100 or NF001"
-                      className="w-full bg-slate-950 border border-slate-700/80 rounded-xl pl-10 pr-3.5 py-2.5 text-xs sm:text-sm font-mono text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all uppercase"
+                      className="w-full bg-white border border-slate-300 rounded-xl pl-10 pr-3.5 py-2.5 text-xs sm:text-sm font-mono text-slate-900 placeholder-slate-400 focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-500 transition-all uppercase"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="text-xs font-semibold text-slate-300 block mb-1.5 flex items-center justify-between">
+                  <label className="text-xs font-semibold text-slate-700 block mb-1.5 flex items-center justify-between">
                     <span>Secret Activation Code</span>
-                    <span className="text-[10px] text-slate-500 font-normal">Format: XXXX-XXXX</span>
+                    <span className="text-[10px] text-slate-400 font-normal">Format: XXXX-XXXX</span>
                   </label>
                   <div className="relative">
-                    <KeyRound className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" />
+                    <KeyRound className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
                     <input
                       type="text"
                       required
                       value={activationCode}
                       onChange={handleCodeChange}
                       placeholder="e.g. T97E-658H"
-                      className="w-full bg-slate-950 border border-slate-700/80 rounded-xl pl-10 pr-3.5 py-2.5 text-xs sm:text-sm font-mono tracking-wider text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all uppercase"
+                      className="w-full bg-white border border-slate-300 rounded-xl pl-10 pr-3.5 py-2.5 text-xs sm:text-sm font-mono tracking-wider text-slate-900 placeholder-slate-400 focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-500 transition-all uppercase"
                     />
                   </div>
                   <p className="text-[11px] text-slate-500 mt-1.5 flex items-center gap-1">
@@ -426,7 +426,7 @@ function ManageCardContent() {
                 <button
                   type="submit"
                   disabled={isVerifying}
-                  className="w-full mt-2 py-3 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/25 transition-all"
+                  className="w-full mt-2 py-3 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 shadow-md shadow-indigo-600/20 transition-all cursor-pointer"
                 >
                   {isVerifying ? (
                     <>
@@ -442,10 +442,10 @@ function ManageCardContent() {
                 </button>
               </form>
 
-              <div className="mt-6 pt-5 border-t border-slate-800 text-center">
-                <p className="text-xs text-slate-400">
+              <div className="mt-6 pt-5 border-t border-slate-100 text-center">
+                <p className="text-xs text-slate-500">
                   First time setting up your card?{" "}
-                  <Link href="/activate" className="text-indigo-400 hover:underline font-semibold">
+                  <Link href="/activate" className="text-indigo-600 hover:underline font-semibold">
                     Go to Activation Portal →
                   </Link>
                 </p>
@@ -458,23 +458,23 @@ function ManageCardContent() {
           /* ========================================================================= */
           <div className="space-y-6">
             {/* Top Card Info & Stats Header */}
-            <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 shadow-xl backdrop-blur-xl">
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-5 border-b border-slate-800">
+            <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-5 border-b border-slate-100">
                 <div>
                   <div className="flex items-center gap-2.5 mb-1.5">
-                    <span className="font-mono text-xs font-bold px-2.5 py-0.5 rounded-md bg-indigo-950 text-indigo-300 border border-indigo-500/30">
+                    <span className="font-mono text-xs font-bold px-2.5 py-0.5 rounded-md bg-indigo-50 text-indigo-700 border border-indigo-200">
                       {card?.slug}
                     </span>
-                    <span className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-300 border border-emerald-500/30">
-                      <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                    <span className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                      <CheckCircle2 className="w-3 h-3 text-emerald-600" />
                       Active & Routing
                     </span>
                   </div>
-                  <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
+                  <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight">
                     {card?.name || business?.name || "My NFC Card"}
                   </h1>
-                  <p className="text-xs text-slate-400 mt-0.5 flex items-center gap-1.5">
-                    <Building2 className="w-3.5 h-3.5 text-slate-500" />
+                  <p className="text-xs text-slate-500 mt-0.5 flex items-center gap-1.5">
+                    <Building2 className="w-3.5 h-3.5 text-slate-400" />
                     {business?.name || "Registered Business"} &bull; {business?.category || "Local Business"}
                   </p>
                 </div>
@@ -484,9 +484,9 @@ function ManageCardContent() {
                     href={`/r/${card?.slug}`}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 border border-slate-700 transition-colors shadow-xs"
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 border border-slate-200 transition-colors shadow-2xs"
                   >
-                    <ExternalLink className="w-3.5 h-3.5 text-indigo-400" />
+                    <ExternalLink className="w-3.5 h-3.5 text-indigo-600" />
                     Test Live NFC Redirect
                   </a>
                 </div>
@@ -494,31 +494,31 @@ function ManageCardContent() {
 
               {/* Quick Metrics Bar */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-5">
-                <div className="p-3 bg-slate-950/60 border border-slate-800/80 rounded-xl">
-                  <span className="text-[11px] font-medium text-slate-400 block mb-1">Total Taps & Scans</span>
+                <div className="p-3 bg-slate-50 border border-slate-200/80 rounded-xl">
+                  <span className="text-[11px] font-medium text-slate-500 block mb-1">Total Taps & Scans</span>
                   <div className="flex items-baseline gap-1.5">
-                    <span className="text-xl font-bold text-white font-mono">{scanCount}</span>
-                    <span className="text-[10px] text-indigo-400 font-medium">interactions</span>
+                    <span className="text-xl font-bold text-slate-900 font-mono">{scanCount}</span>
+                    <span className="text-[10px] text-indigo-600 font-medium">interactions</span>
                   </div>
                 </div>
 
-                <div className="p-3 bg-slate-950/60 border border-slate-800/80 rounded-xl">
-                  <span className="text-[11px] font-medium text-slate-400 block mb-1">Current Target</span>
-                  <span className="text-xs font-semibold text-slate-200 capitalize truncate block">
+                <div className="p-3 bg-slate-50 border border-slate-200/80 rounded-xl">
+                  <span className="text-[11px] font-medium text-slate-500 block mb-1">Current Target</span>
+                  <span className="text-xs font-semibold text-slate-800 capitalize truncate block">
                     {card?.destination_type?.replace("_", " ") || "Google Review"}
                   </span>
                 </div>
 
-                <div className="p-3 bg-slate-950/60 border border-slate-800/80 rounded-xl">
-                  <span className="text-[11px] font-medium text-slate-400 block mb-1">Branch / Location</span>
-                  <span className="text-xs font-semibold text-slate-200 truncate block">
+                <div className="p-3 bg-slate-50 border border-slate-200/80 rounded-xl">
+                  <span className="text-[11px] font-medium text-slate-500 block mb-1">Branch / Location</span>
+                  <span className="text-xs font-semibold text-slate-800 truncate block">
                     {card?.branch || business?.branch || "Main Branch"}
                   </span>
                 </div>
 
-                <div className="p-3 bg-slate-950/60 border border-slate-800/80 rounded-xl">
-                  <span className="text-[11px] font-medium text-slate-400 block mb-1">Routing URL</span>
-                  <span className="text-xs font-mono text-indigo-300 truncate block">
+                <div className="p-3 bg-slate-50 border border-slate-200/80 rounded-xl">
+                  <span className="text-[11px] font-medium text-slate-500 block mb-1">Routing URL</span>
+                  <span className="text-xs font-mono text-indigo-600 font-semibold truncate block">
                     /r/{card?.slug}
                   </span>
                 </div>
@@ -529,29 +529,29 @@ function ManageCardContent() {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
               {/* Left Column: Destination Selector & URL Form */}
               <div className="lg:col-span-8 space-y-6">
-                <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 sm:p-7 shadow-xl backdrop-blur-xl">
-                  <div className="mb-5 pb-4 border-b border-slate-800 flex items-center justify-between">
+                <div className="bg-white border border-slate-200 rounded-2xl p-6 sm:p-7 shadow-sm">
+                  <div className="mb-5 pb-4 border-b border-slate-100 flex items-center justify-between">
                     <div>
-                      <h2 className="text-base font-bold text-white flex items-center gap-2">
-                        <Sparkles className="w-4 h-4 text-indigo-400" />
+                      <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                        <Sparkles className="w-4 h-4 text-indigo-600" />
                         Change Destination Link
                       </h2>
-                      <p className="text-xs text-slate-400 mt-0.5">
+                      <p className="text-xs text-slate-500 mt-0.5">
                         Choose what happens when customers tap your physical NFC card or scan your QR code.
                       </p>
                     </div>
                   </div>
 
                   {saveSuccessMsg && (
-                    <div className="p-4 bg-emerald-950/50 border border-emerald-600/40 rounded-xl text-xs text-emerald-300 mb-5 flex items-center gap-2.5 animate-in fade-in">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                    <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-700 mb-5 flex items-center gap-2.5 animate-in fade-in">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
                       <span>{saveSuccessMsg}</span>
                     </div>
                   )}
 
                   {saveErrorMsg && (
-                    <div className="p-4 bg-rose-950/50 border border-rose-600/40 rounded-xl text-xs text-rose-300 mb-5 flex items-center gap-2.5">
-                      <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+                    <div className="p-4 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 mb-5 flex items-center gap-2.5">
+                      <AlertCircle className="w-4 h-4 text-rose-500 shrink-0" />
                       <span>{saveErrorMsg}</span>
                     </div>
                   )}
@@ -559,19 +559,19 @@ function ManageCardContent() {
                   <form onSubmit={handleSaveDestination} className="space-y-5">
                     {/* Destination Presets (Locked if Card is dedicated to specific purpose) */}
                     {card?.card_purpose && card.card_purpose !== "universal" && card.card_purpose !== "custom" ? (
-                      <div className="p-4 bg-indigo-950/40 border border-indigo-500/30 rounded-xl flex items-center justify-between">
+                      <div className="p-4 bg-indigo-50 border border-indigo-200 rounded-xl flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-xl bg-indigo-600 flex items-center justify-center text-white shadow-md">
+                          <div className="w-9 h-9 rounded-xl bg-indigo-600 flex items-center justify-center text-white shadow-xs">
                             <activePreset.icon className="w-5 h-5" />
                           </div>
                           <div>
-                            <p className="text-xs font-bold text-white flex items-center gap-2">
+                            <p className="text-xs font-bold text-slate-900 flex items-center gap-2">
                               <span>Dedicated {activePreset.title} Card</span>
-                              <span className="text-[10px] px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 font-mono font-semibold">
+                              <span className="text-[10px] px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 font-mono font-semibold">
                                 PURPOSE LOCKED
                               </span>
                             </p>
-                            <p className="text-[11px] text-slate-400 mt-0.5">
+                            <p className="text-[11px] text-slate-500 mt-0.5">
                               This physical card is manufactured exclusively for {activePreset.title}. You can update its destination link below.
                             </p>
                           </div>
@@ -579,7 +579,7 @@ function ManageCardContent() {
                       </div>
                     ) : (
                       <div>
-                        <label className="text-xs font-semibold text-slate-300 block mb-2">
+                        <label className="text-xs font-semibold text-slate-700 block mb-2">
                           Select Destination Type
                         </label>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
@@ -596,22 +596,22 @@ function ManageCardContent() {
                                     setDestinationUrl(preset.placeholder);
                                   }
                                 }}
-                                className={`p-3 rounded-xl border text-left flex items-start gap-3 transition-all ${
+                                className={`p-3 rounded-xl border text-left flex items-start gap-3 transition-all cursor-pointer ${
                                   isSelected
-                                    ? "bg-indigo-950/60 border-indigo-500 text-white ring-1 ring-indigo-500/50 shadow-md shadow-indigo-950/40"
-                                    : "bg-slate-950/60 border-slate-800 text-slate-300 hover:border-slate-700 hover:bg-slate-950"
+                                    ? "bg-indigo-50/70 border-indigo-500 text-indigo-950 ring-1 ring-indigo-500/30 shadow-xs"
+                                    : "bg-slate-50/70 border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-100"
                                 }`}
                               >
                                 <div
                                   className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
-                                    isSelected ? "bg-indigo-600 text-white" : "bg-slate-800 text-slate-400"
+                                    isSelected ? "bg-indigo-600 text-white" : "bg-slate-100 text-slate-500"
                                   }`}
                                 >
                                   <Icon className="w-4 h-4" />
                                 </div>
                                 <div className="min-w-0 flex-1">
                                   <span className="text-xs font-bold block truncate">{preset.title}</span>
-                                  <span className="text-[11px] text-slate-400 block line-clamp-1 mt-0.5">
+                                  <span className="text-[11px] text-slate-500 block line-clamp-1 mt-0.5">
                                     {preset.description}
                                   </span>
                                 </div>
@@ -624,34 +624,34 @@ function ManageCardContent() {
 
                     {/* Target URL Input */}
                     <div>
-                      <label className="text-xs font-semibold text-slate-300 block mb-1.5 flex items-center justify-between">
+                      <label className="text-xs font-semibold text-slate-700 block mb-1.5 flex items-center justify-between">
                         <span>Target Destination URL *</span>
-                        <span className="text-[10px] text-slate-500">{activePreset.helper}</span>
+                        <span className="text-[10px] text-slate-400">{activePreset.helper}</span>
                       </label>
                       <div className="relative">
-                        <Link2 className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" />
+                        <Link2 className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
                         <input
                           type="text"
                           required
                           value={destinationUrl}
                           onChange={(e) => setDestinationUrl(e.target.value)}
                           placeholder={activePreset.placeholder}
-                          className="w-full bg-slate-950 border border-slate-700/80 rounded-xl pl-10 pr-3.5 py-2.5 text-xs sm:text-sm font-mono text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all"
+                          className="w-full bg-white border border-slate-300 rounded-xl pl-10 pr-3.5 py-2.5 text-xs sm:text-sm font-mono text-slate-900 placeholder-slate-400 focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-500 transition-all"
                         />
                       </div>
                     </div>
 
                     {/* Optional Card Label */}
                     <div>
-                      <label className="text-xs font-semibold text-slate-300 block mb-1.5">
-                        Card Display Name <span className="text-slate-500 font-normal">(Optional label for your records)</span>
+                      <label className="text-xs font-semibold text-slate-700 block mb-1.5">
+                        Card Display Name <span className="text-slate-400 font-normal">(Optional label for your records)</span>
                       </label>
                       <input
                         type="text"
                         value={cardName}
                         onChange={(e) => setCardName(e.target.value)}
                         placeholder="e.g. Front Reception Card"
-                        className="w-full bg-slate-950 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500"
+                        className="w-full bg-white border border-slate-300 rounded-xl px-3.5 py-2.5 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-indigo-600"
                       />
                     </div>
 
@@ -660,7 +660,7 @@ function ManageCardContent() {
                       <button
                         type="submit"
                         disabled={isSaving}
-                        className="w-full py-3 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/25 transition-all"
+                        className="w-full py-3 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 shadow-md shadow-indigo-600/20 transition-all cursor-pointer"
                       >
                         {isSaving ? (
                           <>
@@ -682,22 +682,22 @@ function ManageCardContent() {
               {/* Right Column: Physical Card QR & Tips */}
               <div className="lg:col-span-4 space-y-6">
                 {/* QR Code Card */}
-                <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 shadow-xl text-center">
-                  <h3 className="text-sm font-bold text-white mb-1">Your Card's QR Code</h3>
-                  <p className="text-[11px] text-slate-400 mb-4">
-                    Permanent scan link: <span className="font-mono text-indigo-300">nfcflow.in/r/{card?.slug}</span>
+                <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm text-center">
+                  <h3 className="text-sm font-bold text-slate-900 mb-1">Your Card's QR Code</h3>
+                  <p className="text-[11px] text-slate-500 mb-4">
+                    Permanent scan link: <span className="font-mono text-indigo-600 font-semibold">nfcflow.in/r/{card?.slug}</span>
                   </p>
 
                   <CardQrCanvas url={redirectUrl} slug={card?.slug || "card"} />
                 </div>
 
                 {/* Instant Real-Time Routing Info */}
-                <div className="bg-indigo-950/30 border border-indigo-800/40 rounded-2xl p-5">
-                  <div className="flex items-center gap-2 text-indigo-400 font-semibold text-xs mb-2">
-                    <ShieldCheck className="w-4 h-4" />
+                <div className="bg-indigo-50/60 border border-indigo-200/80 rounded-2xl p-5">
+                  <div className="flex items-center gap-2 text-indigo-700 font-semibold text-xs mb-2">
+                    <ShieldCheck className="w-4 h-4 text-indigo-600" />
                     Permanent Dynamic Chip
                   </div>
-                  <p className="text-xs text-slate-300 leading-relaxed">
+                  <p className="text-xs text-slate-600 leading-relaxed">
                     Your physical NFC card and QR code are permanently linked to your cloud routing ID. Whenever you change the destination link above, all future customer taps redirect to the new page in real time with 0 downtime.
                   </p>
                 </div>
@@ -708,7 +708,7 @@ function ManageCardContent() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-slate-900 py-6 text-center text-xs text-slate-600">
+      <footer className="border-t border-slate-200 py-6 text-center text-xs text-slate-500 bg-white">
         <p>NFCFlow &bull; Dynamic NFC & QR Routing Platform for Businesses</p>
       </footer>
     </div>
@@ -719,7 +719,7 @@ export default function ManageCardPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-slate-950 text-slate-400 flex items-center justify-center text-xs">
+        <div className="min-h-screen bg-slate-50 text-slate-500 flex items-center justify-center text-xs">
           Loading NFCFlow Owner Portal...
         </div>
       }
