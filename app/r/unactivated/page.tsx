@@ -29,7 +29,7 @@ function UnactivatedContent() {
         </div>
 
         {/* Card visual mockup */}
-        <div className="relative mx-auto w-48 h-28 bg-linear-to-tr from-slate-900 via-slate-800 to-slate-900 border border-slate-700 rounded-xl p-3 flex flex-col justify-between shadow-md text-white">
+        <div className="relative mx-auto w-48 h-28 bg-gradient-to-tr from-slate-900 via-slate-800 to-slate-900 border border-slate-700 rounded-xl p-3 flex flex-col justify-between shadow-md text-white">
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-bold tracking-wider text-blue-400 uppercase">NFC + QR Card</span>
             <CreditCard className="w-4 h-4 text-slate-400" />

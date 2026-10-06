@@ -625,7 +625,7 @@ export default function LandingPage() {
       <section id="use-cases" className="py-12 sm:py-20 px-4 sm:px-8 lg:px-12 max-w-7xl mx-auto w-full">
         
         {/* Large Rounded Container */}
-        <div className="bg-linear-to-b from-blue-50/50 via-sky-50/20 to-slate-50/70 border border-blue-100 rounded-3xl p-6 sm:p-10 lg:p-12 shadow-xs">
+        <div className="bg-gradient-to-b from-blue-50/50 via-sky-50/20 to-slate-50/70 border border-blue-100 rounded-3xl p-6 sm:p-10 lg:p-12 shadow-xs">
           
           {/* Container Header */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 sm:mb-12">
@@ -749,9 +749,13 @@ export default function LandingPage() {
       {/* 6. CONTACT & CTA FOOTER BANNER                                            */}
       {/* ========================================================================= */}
       <section id="contact" className="py-16 px-4 sm:px-8 lg:px-12 max-w-6xl mx-auto w-full">
-        <div className="bg-linear-to-r from-blue-600 via-blue-700 to-indigo-700 rounded-3xl p-8 sm:p-12 text-white text-center sm:text-left flex flex-col sm:flex-row items-center justify-between gap-8 shadow-xl">
-          <div className="space-y-2 max-w-lg">
-            <h2 className="text-2xl sm:text-3xl font-black tracking-tight">
+        <div className="bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 rounded-3xl p-8 sm:p-12 text-white text-center sm:text-left flex flex-col sm:flex-row items-center justify-between gap-8 shadow-xl relative overflow-hidden">
+          {/* Subtle background decorative shapes */}
+          <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-white/10 rounded-full blur-2xl pointer-events-none" />
+          <div className="absolute bottom-0 left-1/3 -mb-16 w-48 h-48 bg-indigo-500/20 rounded-full blur-2xl pointer-events-none" />
+
+          <div className="space-y-2 max-w-lg relative z-10">
+            <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
               Ready to grow your customer reviews?
             </h2>
             <p className="text-xs sm:text-sm text-blue-100 leading-relaxed">
@@ -761,7 +765,7 @@ export default function LandingPage() {
               </a>.
             </p>
           </div>
-          <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
+          <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto relative z-10">
             <Link href="/activate" className="w-full sm:w-auto">
               <Button variant="secondary" size="lg" className="w-full justify-center bg-white text-blue-700 hover:bg-blue-50 font-bold rounded-xl text-xs py-3.5 px-6 shadow-md">
                 Get Started Now <ArrowRight className="w-4 h-4 ml-1.5" />
