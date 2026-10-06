@@ -14,7 +14,7 @@ export default function NotFound() {
             The card link or page you are looking for does not exist or has been moved.
           </p>
         </div>
-        <div className="pt-2">
+        <div className="pt-2 space-y-3">
           <Link
             href="/"
             className="inline-flex items-center justify-center gap-2 w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl text-xs transition-colors shadow-sm"
@@ -22,6 +22,9 @@ export default function NotFound() {
             <ArrowLeft className="w-4 h-4" />
             <span>Return to NFCFlow Home</span>
           </Link>
+          <p className="text-[11px] text-slate-400">
+            Need help? Contact <a href="mailto:support.nfcflow@gmail.com" className="text-blue-600 hover:underline">support.nfcflow@gmail.com</a>
+          </p>
         </div>
       </div>
     </div>

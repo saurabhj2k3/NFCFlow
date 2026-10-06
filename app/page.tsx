@@ -176,6 +176,10 @@ const FAQS = [
     q: "How long does the physical NFC chip last?",
     a: "Our cards use industrial-grade NXP NTAG213 PVC chips rated for over 100,000 read cycles and 10+ years of physical durability with waterproof lamination.",
   },
+  {
+    q: "How can I contact customer support or place bulk orders?",
+    a: "You can email our team directly at support.nfcflow@gmail.com for enterprise inquiries, bulk card batch printing, or general customer support.",
+  },
 ];
 
 export default function LandingPage() {
@@ -318,6 +322,14 @@ export default function LandingPage() {
           >
             Manage Existing Card
           </Link>
+          <a
+            href="mailto:support.nfcflow@gmail.com"
+            onClick={() => setMobileMenuOpen(false)}
+            className="flex items-center gap-2 text-sm text-blue-600 font-semibold pt-1"
+          >
+            <Mail className="w-4 h-4" />
+            <span>support.nfcflow@gmail.com</span>
+          </a>
           <div className="pt-2">
             <Link href="/activate" onClick={() => setMobileMenuOpen(false)}>
               <Button variant="primary" size="md" className="w-full justify-center bg-blue-600 text-white rounded-xl">
@@ -743,7 +755,10 @@ export default function LandingPage() {
               Ready to grow your customer reviews?
             </h2>
             <p className="text-xs sm:text-sm text-blue-100 leading-relaxed">
-              Activate your NFCFlow smart card today and start capturing 5-star Google Reviews on autopilot.
+              Activate your NFCFlow smart card today or get in touch with our team at{" "}
+              <a href="mailto:support.nfcflow@gmail.com" className="underline font-bold text-white hover:text-blue-200 transition-colors">
+                support.nfcflow@gmail.com
+              </a>.
             </p>
           </div>
           <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
@@ -752,11 +767,13 @@ export default function LandingPage() {
                 Get Started Now <ArrowRight className="w-4 h-4 ml-1.5" />
               </Button>
             </Link>
-            <Link href="/activate" className="w-full sm:w-auto">
-              <Button variant="ghost" size="lg" className="w-full justify-center text-white hover:bg-white/10 rounded-xl text-xs py-3.5 px-5 border border-white/20">
-                Activate Card
-              </Button>
-            </Link>
+            <a
+              href="mailto:support.nfcflow@gmail.com"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold text-xs transition-colors"
+            >
+              <Mail className="w-4 h-4" />
+              <span>Contact Support</span>
+            </a>
           </div>
         </div>
       </section>
@@ -793,6 +810,13 @@ export default function LandingPage() {
             </a>
             <a href="#faq" className="hover:text-blue-600 transition-colors">
               FAQ
+            </a>
+            <a
+              href="mailto:support.nfcflow@gmail.com"
+              className="inline-flex items-center gap-1.5 text-blue-600 hover:text-blue-700 transition-colors font-semibold"
+            >
+              <Mail className="w-3.5 h-3.5" />
+              <span>support.nfcflow@gmail.com</span>
             </a>
             <Link href="/login" className="hover:text-blue-600 transition-colors">
               Admin Sign In

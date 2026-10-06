@@ -708,8 +708,9 @@ function ManageCardContent() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-slate-200 py-6 text-center text-xs text-slate-500 bg-white">
+      <footer className="border-t border-slate-200 py-6 text-center text-xs text-slate-500 bg-white space-y-1">
         <p>NFCFlow &bull; Dynamic NFC & QR Routing Platform for Businesses</p>
+        <p>Need assistance? Contact support at <a href="mailto:support.nfcflow@gmail.com" className="text-blue-600 hover:underline font-semibold">support.nfcflow@gmail.com</a></p>
       </footer>
     </div>
   );
