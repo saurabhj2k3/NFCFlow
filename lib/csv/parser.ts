@@ -1,5 +1,6 @@
 import Papa from "papaparse";
 import { CsvCardRow, CsvMapping, CsvValidationIssue, CsvValidationResult } from "@/lib/templates/types";
+import { getCardRedirectUrl } from "@/lib/utils";
 
 export interface ParsedCsvData {
   headers: string[];
@@ -264,8 +265,9 @@ export function generateSampleCsvContent(count: number = 10): string {
     const num = String(i).padStart(3, "0");
     const code = `${Math.random().toString(36).substring(2, 6).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
     const slug = `GR${num}`;
+    const cardUrl = getCardRedirectUrl(slug);
     sampleRows.push(
-      `${slug},https://nfcflow.in/r/${slug},https://nfcflow.in/r/${slug},${code},Apex Health & Retail Store #${i},google_review`
+      `${slug},${cardUrl},${cardUrl},${code},Apex Health & Retail Store #${i},google_review`
     );
   }
 

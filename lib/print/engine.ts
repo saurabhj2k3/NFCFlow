@@ -8,6 +8,7 @@ import { generateCardSvg, CR80_WIDTH_MM, CR80_HEIGHT_MM } from "./svg-generator"
 import { CardTemplate, CsvCardRow, PrintJob, SheetLayoutConfig } from "@/lib/templates/types";
 import { getTemplateById } from "@/lib/templates/registry";
 import { updatePrintJob } from "@/lib/db/print-jobs-store";
+import { getCardRedirectUrl } from "@/lib/utils";
 
 // Unit conversions
 const MM_TO_PT = 72 / 25.4; // 1 mm = 2.83465 PDF points
@@ -76,7 +77,7 @@ export async function processPrintJob({ job, onProgress }: ProcessPrintJobOption
         const globalIdx = i + cIdx;
         const card = chunk[cIdx];
         const cardId = card.cardId || `CR-${globalIdx + 1}`;
-        const qrUrl = card.qrUrl || "https://nfcflow.in";
+        const qrUrl = card.qrUrl || getCardRedirectUrl(cardId, "qr");
 
         // 1. Generate SVG String for this card
         const svgString = await generateCardSvg({

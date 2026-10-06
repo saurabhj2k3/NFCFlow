@@ -170,7 +170,7 @@ export function TemplateEditorModal({
             <div className="p-4 bg-slate-200/50 rounded-2xl flex items-center justify-center">
               <GoogleReviewCardExact
                 cardId="TEST01"
-                qrUrl="https://nfcflow.in/r/TEST01"
+                qrUrl="https://nfcflow.vercel.app/r/TEST01"
                 template={currentTemplate}
                 qrCoordinates={qrConfig}
                 scale={0.92}

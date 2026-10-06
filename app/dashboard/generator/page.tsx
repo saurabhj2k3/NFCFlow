@@ -289,7 +289,7 @@ export default function BulkGeneratorPage() {
 
   const currentPreviewCard = validation?.validCards[previewIndex] || {
     cardId: "GR001",
-    qrUrl: "https://nfcflow.in/r/GR001",
+    qrUrl: "https://nfcflow.vercel.app/r/GR001",
     activationCode: "49K2-X8L1",
     businessName: "Sample Business Store",
   };
@@ -667,7 +667,7 @@ export default function BulkGeneratorPage() {
                     <div className="h-56 bg-slate-100 rounded-xl overflow-hidden flex items-center justify-center p-2 border border-slate-200/60">
                       <GoogleReviewCardExact
                         cardId="SAMPLE"
-                        qrUrl="https://nfcflow.in/r/SAMPLE"
+                        qrUrl="https://nfcflow.vercel.app/r/SAMPLE"
                         template={tpl}
                         scale={0.52}
                       />
