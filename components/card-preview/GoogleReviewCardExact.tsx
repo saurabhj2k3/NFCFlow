@@ -91,22 +91,22 @@ export function GoogleReviewCardExact({
 
         {/* Authentic Vector Artwork Background */}
         <img
-          src="/templates/google-review-template.svg"
+          src="/templates/google-review-base.svg"
           alt="Google Review Card Template"
           className="w-full h-full object-fill block pointer-events-none"
         />
 
-        {/* Dynamic QR Code Overlay Container (matching exact x=21, y=89 in 153x243 viewBox) */}
+        {/* Dynamic QR Code Overlay Container (perfectly centered inside the white quadrant, zero overlap with stars, blue bar, or outer circle) */}
         <div
           className="absolute z-10 flex items-center justify-center pointer-events-none"
           style={{
-            left: "13.725%",
-            top: "36.625%",
-            width: "36.274%",
-            height: "22.839%",
+            left: "14.706%",
+            top: "40.329%",
+            width: "25.490%",
+            height: "16.049%",
           }}
         >
-          <div className="w-full h-full p-[9%] bg-white rounded-[3px] shadow-xs flex items-center justify-center">
+          <div className="w-full h-full p-[2%] bg-white rounded-[3px] flex items-center justify-center">
             {qrDataUrl ? (
               <img
                 src={qrDataUrl}

@@ -98,11 +98,11 @@ export async function generateCardSvg({
 
     // Replace QR group in the authentic vector template
     // Template viewBox: "0 0 153 242.999999", width="204", height="324"
-    // The QR is positioned at x=21, y=89 with white square 55.5x55.5 and QR image 45.5x45.5 inset by 5
+    // The QR is positioned cleanly inside the white quadrant at x=22.5, y=98 with width=39, height=39
     const dynamicQrGroup = `
-    <g transform="matrix(1, 0, 0, 1, 21, 89)">
-      <rect x="0" y="0" width="55.5" height="55.5" rx="3" ry="3" fill="#ffffff" />
-      <image x="5" y="5" width="45.5" height="45.5" href="${qrDataUrl}" />
+    <g transform="matrix(1, 0, 0, 1, 22.5, 98)">
+      <rect x="0" y="0" width="39" height="39" rx="3" ry="3" fill="#ffffff" />
+      <image x="1" y="1" width="37" height="37" href="${qrDataUrl}" />
     </g>
     `;
 
