@@ -352,12 +352,6 @@ export default function LandingPage() {
           
           {/* Left Hero Content */}
           <div className="lg:col-span-7 space-y-6 sm:space-y-8 text-left">
-            {/* Tag Pill */}
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-50 border border-blue-200/80 text-blue-700 text-xs font-semibold shadow-2xs">
-              <Sparkles className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-              <span>NFC + QR • Dynamic Links • Zero Reprinting</span>
-            </div>
-
             {/* Main Headline */}
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-slate-900 tracking-tight leading-[1.1]">
               One card.<br />
