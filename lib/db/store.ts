@@ -1304,12 +1304,22 @@ export async function verifyCardManagementAuth(
 
   const events = await getScanEvents({ card_id: card.id || card.slug });
   const scanCount = events.length;
+  const nfcCount = events.filter((e) => e.source === "nfc").length;
+  const qrCount = events.filter((e) => e.source === "qr").length;
+  const iphoneCount = events.filter((e) => e.device_type === "iphone").length;
+  const androidCount = events.filter((e) => e.device_type === "android").length;
+  const recentEvents = events.slice(0, 5);
 
   return {
     valid: true,
     card,
     business,
     scanCount,
+    nfcCount,
+    qrCount,
+    iphoneCount,
+    androidCount,
+    recentEvents,
     message: "Card authenticated successfully!",
   };
 }

@@ -29,8 +29,13 @@ import {
   LogOut,
   HelpCircle,
   Phone,
+  QrCode,
+  Smartphone,
+  Laptop,
+  Clock,
+  TrendingUp,
 } from "lucide-react";
-import { Card, Business, DestinationType } from "@/types";
+import { Card, Business, DestinationType, RedirectEvent } from "@/types";
 import { getCardRedirectUrl } from "@/lib/utils";
 
 interface DestinationPreset {
@@ -165,6 +170,11 @@ function ManageCardContent() {
   const [card, setCard] = useState<Card | null>(null);
   const [business, setBusiness] = useState<Business | null>(null);
   const [scanCount, setScanCount] = useState<number>(0);
+  const [nfcCount, setNfcCount] = useState<number>(0);
+  const [qrCount, setQrCount] = useState<number>(0);
+  const [iphoneCount, setIphoneCount] = useState<number>(0);
+  const [androidCount, setAndroidCount] = useState<number>(0);
+  const [recentEvents, setRecentEvents] = useState<RedirectEvent[]>([]);
 
   // Edit Destination States
   const [selectedType, setSelectedType] = useState<DestinationType>("google_review");
@@ -226,6 +236,11 @@ function ManageCardContent() {
       setCard(json.card);
       setBusiness(json.business || null);
       setScanCount(json.scan_count || 0);
+      setNfcCount(json.nfc_count || 0);
+      setQrCount(json.qr_count || 0);
+      setIphoneCount(json.iphone_count || 0);
+      setAndroidCount(json.android_count || 0);
+      setRecentEvents(json.recent_events || []);
       setSelectedType(json.card.destination_type || "google_review");
       setDestinationUrl(json.card.destination_url || "");
       setCardName(json.card.name || "");
@@ -289,6 +304,12 @@ function ManageCardContent() {
     setCard(null);
     setBusiness(null);
     setActivationCode("");
+    setScanCount(0);
+    setNfcCount(0);
+    setQrCount(0);
+    setIphoneCount(0);
+    setAndroidCount(0);
+    setRecentEvents([]);
   };
 
   const redirectUrl = card ? getCardRedirectUrl(card.slug) : "";
@@ -690,6 +711,100 @@ function ManageCardContent() {
                   </p>
 
                   <CardQrCanvas url={redirectUrl} slug={card?.slug || "card"} />
+                </div>
+
+                {/* Live Card Analytics Card */}
+                <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
+                  <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                    <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                      <BarChart2 className="w-4 h-4 text-indigo-600" />
+                      Live Card Analytics
+                    </h3>
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 font-semibold">
+                      {scanCount} Total
+                    </span>
+                  </div>
+
+                  {/* Tap Source Breakdown */}
+                  <div className="space-y-2.5">
+                    <div>
+                      <div className="flex items-center justify-between text-xs text-slate-600 font-medium mb-1">
+                        <span className="flex items-center gap-1.5">
+                          <Radio className="w-3.5 h-3.5 text-indigo-600" /> Contactless NFC
+                        </span>
+                        <span className="font-mono font-bold text-slate-900">
+                          {nfcCount} ({scanCount > 0 ? Math.round((nfcCount / scanCount) * 100) : 0}%)
+                        </span>
+                      </div>
+                      <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                        <div
+                          className="bg-indigo-600 h-full rounded-full transition-all duration-500"
+                          style={{ width: `${scanCount > 0 ? (nfcCount / scanCount) * 100 : 0}%` }}
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className="flex items-center justify-between text-xs text-slate-600 font-medium mb-1">
+                        <span className="flex items-center gap-1.5">
+                          <QrCode className="w-3.5 h-3.5 text-emerald-600" /> Camera QR Scan
+                        </span>
+                        <span className="font-mono font-bold text-slate-900">
+                          {qrCount} ({scanCount > 0 ? Math.round((qrCount / scanCount) * 100) : 0}%)
+                        </span>
+                      </div>
+                      <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                        <div
+                          className="bg-emerald-500 h-full rounded-full transition-all duration-500"
+                          style={{ width: `${scanCount > 0 ? (qrCount / scanCount) * 100 : 0}%` }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Device OS Breakdown */}
+                  <div className="pt-2 border-t border-slate-100 grid grid-cols-2 gap-2 text-center text-xs">
+                    <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+                      <span className="text-[10px] text-slate-500 block mb-0.5 flex items-center justify-center gap-1">
+                        <Smartphone className="w-3 h-3 text-slate-400" /> iPhone (iOS)
+                      </span>
+                      <span className="font-bold text-slate-900 font-mono text-sm">{iphoneCount}</span>
+                    </div>
+                    <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+                      <span className="text-[10px] text-slate-500 block mb-0.5 flex items-center justify-center gap-1">
+                        <Smartphone className="w-3 h-3 text-slate-400" /> Android
+                      </span>
+                      <span className="font-bold text-slate-900 font-mono text-sm">{androidCount}</span>
+                    </div>
+                  </div>
+
+                  {/* Recent Activity Log */}
+                  {recentEvents && recentEvents.length > 0 && (
+                    <div className="pt-2 border-t border-slate-100 space-y-2">
+                      <span className="text-[11px] font-bold text-slate-700 block">Recent Activity</span>
+                      <div className="space-y-1.5">
+                        {recentEvents.map((evt, idx) => (
+                          <div
+                            key={idx}
+                            className="flex items-center justify-between text-[11px] py-1.5 px-2.5 rounded-lg bg-slate-50 text-slate-600 border border-slate-100/80"
+                          >
+                            <span className="capitalize font-semibold text-slate-800 flex items-center gap-1.5">
+                              {evt.source === "nfc" ? (
+                                <Radio className="w-3 h-3 text-indigo-600 shrink-0" />
+                              ) : (
+                                <QrCode className="w-3 h-3 text-emerald-600 shrink-0" />
+                              )}
+                              <span>{evt.source.toUpperCase()}</span>
+                              <span className="text-slate-400 font-normal">&bull; {evt.device_type}</span>
+                            </span>
+                            <span className="text-[10px] font-mono text-slate-400 shrink-0">
+                              {new Date(evt.scanned_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Instant Real-Time Routing Info */}

@@ -32,6 +32,11 @@ export async function POST(req: NextRequest) {
       card: result.card,
       business: result.business,
       scan_count: result.scanCount || 0,
+      nfc_count: (result as any).nfcCount || 0,
+      qr_count: (result as any).qrCount || 0,
+      iphone_count: (result as any).iphoneCount || 0,
+      android_count: (result as any).androidCount || 0,
+      recent_events: (result as any).recentEvents || [],
       message: result.message,
     });
   } catch (error: any) {
