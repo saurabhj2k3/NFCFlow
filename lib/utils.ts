@@ -70,17 +70,17 @@ export function getBaseUrl(): string {
 
 /**
  * Get base URL specifically for physical NFC cards and QR code redirects
- * Points permanently to https://nfcflow.vercel.app or NEXT_PUBLIC_CARD_BASE_URL
+ * Points to https://nfcflow.in or NEXT_PUBLIC_CARD_BASE_URL
  */
 export function getCardBaseUrl(): string {
   if (process.env.NEXT_PUBLIC_CARD_BASE_URL) {
     return process.env.NEXT_PUBLIC_CARD_BASE_URL.replace(/\/$/, "");
   }
-  return "https://nfcflow.vercel.app";
+  return "https://nfcflow.in";
 }
 
 /**
- * Construct public redirect URL for a smart card (e.g. https://nfcflow.vercel.app/r/WD0100)
+ * Construct public redirect URL for a smart card (e.g. https://nfcflow.in/r/WD0100)
  */
 export function getCardRedirectUrl(slug: string, source?: "nfc" | "qr"): string {
   const base = getCardBaseUrl();

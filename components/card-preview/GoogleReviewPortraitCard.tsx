@@ -570,7 +570,7 @@ export function GoogleReviewPortraitCard({
                 </div>
               )}
               <div className="flex items-center justify-between text-[8px] opacity-60 pt-0.5">
-                <span>nfcflow.vercel.app/r/{slug}</span>
+                <span>nfcflow.in/r/{slug}</span>
                 <span>Click to flip</span>
               </div>
             </div>

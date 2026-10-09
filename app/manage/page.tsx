@@ -686,7 +686,7 @@ function ManageCardContent() {
                 <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm text-center">
                   <h3 className="text-sm font-bold text-slate-900 mb-1">Your Card's QR Code</h3>
                   <p className="text-[11px] text-slate-500 mb-4">
-                    Permanent scan link: <span className="font-mono text-indigo-600 font-semibold">nfcflow.vercel.app/r/{card?.slug}</span>
+                    Permanent scan link: <span className="font-mono text-indigo-600 font-semibold">nfcflow.in/r/{card?.slug}</span>
                   </p>
 
                   <CardQrCanvas url={redirectUrl} slug={card?.slug || "card"} />

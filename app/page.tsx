@@ -497,7 +497,7 @@ export default function LandingPage() {
               <div className="absolute right-0 sm:right-2 top-4 sm:top-6 rotate-[7deg] transform hover:rotate-[3deg] hover:scale-105 transition-all duration-300 z-20 drop-shadow-2xl">
                 <GoogleReviewCardExact
                   cardId="WD0100"
-                  qrUrl="https://nfcflow.vercel.app/r/WD0100"
+                  qrUrl="https://nfcflow.in/r/WD0100"
                   scale={0.88}
                 />
               </div>
