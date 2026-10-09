@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getPrintJobById } from "@/lib/db/print-jobs-store";
 import fs from "fs";
 import path from "path";
+import os from "os";
 
 export const dynamic = "force-dynamic";
 
@@ -19,38 +20,47 @@ export async function GET(
       return NextResponse.json({ error: "Print job not found." }, { status: 404 });
     }
 
-    const exportDir = path.join(process.cwd(), "public", "exports", id);
+    const candidateDirs = [
+      path.join(process.cwd(), "public", "exports", id),
+      path.join(os.tmpdir(), "nfcflow_exports", id),
+    ];
 
-    let filePath = "";
-    let filename = "";
+    let targetFilename = "";
     let contentType = "";
 
     if (type === "pdf") {
-      filePath = path.join(exportDir, "print_cards.pdf");
-      filename = `NFCFlow_${id}_Print_Cards_300DPI.pdf`;
+      targetFilename = "print_cards.pdf";
       contentType = "application/pdf";
     } else if (type === "cards_zip") {
-      filePath = path.join(exportDir, "cards_300dpi.zip");
-      filename = `NFCFlow_${id}_Cards_PNG_300DPI.zip`;
+      targetFilename = "cards_300dpi.zip";
       contentType = "application/zip";
     } else if (type === "qr_zip") {
-      filePath = path.join(exportDir, "qr_codes_300dpi.zip");
-      filename = `NFCFlow_${id}_QR_Codes.zip`;
+      targetFilename = "qr_codes_300dpi.zip";
       contentType = "application/zip";
     } else if (type === "manifest") {
-      filePath = path.join(exportDir, "manifest.csv");
-      filename = `NFCFlow_${id}_Production_Manifest.csv`;
+      targetFilename = "manifest.csv";
       contentType = "text/csv; charset=utf-8";
     } else {
       return NextResponse.json({ error: "Invalid download type." }, { status: 400 });
     }
 
-    if (!fs.existsSync(filePath)) {
+    let filePath = "";
+    for (const dir of candidateDirs) {
+      const candidate = path.join(dir, targetFilename);
+      if (fs.existsSync(candidate)) {
+        filePath = candidate;
+        break;
+      }
+    }
+
+    if (!filePath || !fs.existsSync(filePath)) {
       return NextResponse.json(
         { error: `Requested file for job ${id} does not exist on server.` },
         { status: 404 }
       );
     }
+
+    const filename = `NFCFlow_${id}_${targetFilename}`;
 
     const fileBuffer = fs.readFileSync(filePath);
     const uint8Array = new Uint8Array(fileBuffer);

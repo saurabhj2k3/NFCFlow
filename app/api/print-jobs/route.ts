@@ -74,16 +74,17 @@ export async function POST(req: NextRequest) {
       export_options,
     });
 
-    // Start asynchronous processing (non-blocking for large batches)
-    // We kick it off without blocking the initial HTTP response
-    processPrintJob({ job: newJob }).catch((err) => {
-      console.error(`Background processing for job ${newJob.id} failed:`, err);
-    });
+    // Process print job
+    try {
+      await processPrintJob({ job: newJob });
+    } catch (procErr: any) {
+      console.error(`Processing for job ${newJob.id} failed:`, procErr);
+    }
 
     return NextResponse.json({
       success: true,
       job: newJob,
-      message: `Print job created for ${card_data.length} cards. Processing in background.`,
+      message: `Print job created for ${card_data.length} cards.`,
     });
   } catch (err: any) {
     console.error("Failed to create print job:", err);

@@ -1,21 +1,25 @@
 import { PrintJob, PrintJobStatus, SheetLayoutConfig, CsvCardRow } from "@/lib/templates/types";
 import fs from "fs";
 import path from "path";
+import os from "os";
 
-const DATA_DIR = path.join(process.cwd(), "data");
-const PRINT_JOBS_FILE = path.join(DATA_DIR, "print_jobs.json");
-const OUTPUT_DIR = path.join(process.cwd(), "public", "exports");
-
-function ensureDirs() {
+function getStorePaths() {
   try {
-    if (!fs.existsSync(DATA_DIR)) {
-      fs.mkdirSync(DATA_DIR, { recursive: true });
+    const localDir = path.join(process.cwd(), "data");
+    const localFile = path.join(localDir, "print_jobs.json");
+    if (!fs.existsSync(localDir)) {
+      fs.mkdirSync(localDir, { recursive: true });
     }
-    if (!fs.existsSync(OUTPUT_DIR)) {
-      fs.mkdirSync(OUTPUT_DIR, { recursive: true });
+    const testFile = path.join(localDir, `.test_${Date.now()}`);
+    fs.writeFileSync(testFile, "1");
+    fs.unlinkSync(testFile);
+    return { dir: localDir, file: localFile };
+  } catch {
+    const tmpDir = path.join(os.tmpdir(), "nfcflow_data");
+    if (!fs.existsSync(tmpDir)) {
+      fs.mkdirSync(tmpDir, { recursive: true });
     }
-  } catch (err) {
-    console.warn("Failed to ensure directories:", err);
+    return { dir: tmpDir, file: path.join(tmpDir, "print_jobs.json") };
   }
 }
 
@@ -23,9 +27,9 @@ let inMemoryPrintJobs: PrintJob[] = [];
 
 function loadPrintJobs(): PrintJob[] {
   try {
-    ensureDirs();
-    if (fs.existsSync(PRINT_JOBS_FILE)) {
-      const raw = fs.readFileSync(PRINT_JOBS_FILE, "utf-8");
+    const { file } = getStorePaths();
+    if (fs.existsSync(file)) {
+      const raw = fs.readFileSync(file, "utf-8");
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed)) {
         inMemoryPrintJobs = parsed;
@@ -40,8 +44,8 @@ function loadPrintJobs(): PrintJob[] {
 
 function savePrintJobs(): void {
   try {
-    ensureDirs();
-    fs.writeFileSync(PRINT_JOBS_FILE, JSON.stringify(inMemoryPrintJobs, null, 2), "utf-8");
+    const { file } = getStorePaths();
+    fs.writeFileSync(file, JSON.stringify(inMemoryPrintJobs, null, 2), "utf-8");
   } catch (err) {
     console.warn("Failed saving print jobs file:", err);
   }

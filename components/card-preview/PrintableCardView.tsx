@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Printer, Sparkles, LayoutGrid, Sliders, Palette, Check } from "lucide-react";
+import { Printer, Sparkles, LayoutGrid, Sliders, Palette, Check, Download, FileCode, FileText } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { GoogleReviewPortraitCard } from "@/components/card-preview/GoogleReviewPortraitCard";
 import { PvcCardPreview } from "@/components/card-preview/PvcCardPreview";
@@ -26,15 +26,33 @@ export function PrintableCardView({
   const [headline, setHeadline] = useState("YOUR FEEDBACK");
   const [brandTag, setBrandTag] = useState(businessName || "NFCFlow");
   const [showActivationKey, setShowActivationKey] = useState(false);
+  const [printSide, setPrintSide] = useState<"both" | "front" | "back">("both");
+  const [isExporting, setIsExporting] = useState<string | null>(null);
 
   const handlePrint = () => {
     window.print();
   };
 
+  const handleDownloadAsset = (format: "png" | "svg" | "pdf") => {
+    setIsExporting(format);
+    const downloadUrl = `/api/cards/${encodeURIComponent(slug)}/export?format=${format}&template_id=google-review-v1&bleed=2.0`;
+    const a = document.createElement("a");
+    a.href = downloadUrl;
+    a.download = `nfcflow_${slug}_${format === "png" ? "300dpi.png" : (format === "svg" ? "cr80.svg" : "cr80.pdf")}`;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => {
+      if (document.body.contains(a)) {
+        document.body.removeChild(a);
+      }
+      setIsExporting(null);
+    }, 1000);
+  };
+
   return (
     <div className="space-y-6">
       {/* HEADER & CONTROLS */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 rounded-xl border border-slate-200 shadow-xs">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-white p-4 rounded-xl border border-slate-200 shadow-xs no-print">
         <div>
           <div className="flex items-center gap-2">
             <h3 className="text-sm font-bold text-slate-900">
@@ -49,15 +67,54 @@ export function PrintableCardView({
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
-          <Button onClick={handlePrint} variant="primary" size="sm" className="gap-1.5 bg-slate-900 text-white hover:bg-slate-800 font-bold">
+        {/* Action Buttons */}
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            onClick={() => handleDownloadAsset("png")}
+            disabled={isExporting !== null}
+            variant="secondary"
+            size="sm"
+            className="gap-1.5 text-xs font-semibold"
+          >
+            <Download className="w-3.5 h-3.5 text-blue-600" />
+            {isExporting === "png" ? "Exporting..." : "300 DPI PNG"}
+          </Button>
+
+          <Button
+            onClick={() => handleDownloadAsset("svg")}
+            disabled={isExporting !== null}
+            variant="secondary"
+            size="sm"
+            className="gap-1.5 text-xs font-semibold"
+          >
+            <FileCode className="w-3.5 h-3.5 text-emerald-600" />
+            {isExporting === "svg" ? "Exporting..." : "Vector SVG"}
+          </Button>
+
+          <Button
+            onClick={() => handleDownloadAsset("pdf")}
+            disabled={isExporting !== null}
+            variant="secondary"
+            size="sm"
+            className="gap-1.5 text-xs font-semibold"
+          >
+            <FileText className="w-3.5 h-3.5 text-rose-600" />
+            {isExporting === "pdf" ? "Exporting..." : "CR80 PDF"}
+          </Button>
+
+          <Button
+            onClick={handlePrint}
+            variant="primary"
+            size="sm"
+            className="gap-1.5 bg-slate-900 text-white hover:bg-slate-800 font-bold"
+          >
             <Printer className="w-3.5 h-3.5" /> Print Card (CR80)
           </Button>
         </div>
       </div>
 
       {/* CUSTOMIZATION TOOLBAR */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-3 bg-slate-50 p-4 rounded-xl border border-slate-200 text-xs">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-3 bg-slate-50 p-4 rounded-xl border border-slate-200 text-xs no-print">
         {/* Layout Style */}
         <div>
           <label className="block text-[11px] font-bold text-slate-700 mb-1.5 flex items-center gap-1">
@@ -72,7 +129,7 @@ export function PrintableCardView({
                   : "bg-white text-slate-700 border-slate-200 hover:bg-slate-100"
               }`}
             >
-              Portrait Google (Revuz)
+              Portrait Google
             </button>
             <button
               onClick={() => setLayoutStyle("landscape_classic")}
@@ -134,7 +191,7 @@ export function PrintableCardView({
           </select>
         </div>
 
-        {/* Brand Label & Key Toggle */}
+        {/* Brand Label */}
         <div>
           <label className="block text-[11px] font-bold text-slate-700 mb-1.5">Bottom Brand Tag</label>
           <input
@@ -148,51 +205,54 @@ export function PrintableCardView({
       </div>
 
       {/* PRINTABLE PREVIEW CANVAS */}
-      <div id="printable-card-area" className="flex flex-col items-center justify-center p-8 bg-slate-100 border border-slate-200 rounded-2xl relative overflow-hidden">
-        {layoutStyle === "portrait_revuz" ? (
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-8">
+      <div className="flex flex-col items-center justify-center p-6 bg-slate-100 border border-slate-200 rounded-2xl relative overflow-hidden">
+        <div id="printable-card-target" className="flex flex-col items-center justify-center">
+          {layoutStyle === "portrait_revuz" ? (
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-8">
+              {/* Front Side */}
+              <div className="flex flex-col items-center">
+                <span className="text-[11px] font-mono text-slate-500 mb-2 font-bold uppercase tracking-wider no-print">
+                  Front Side (Tap NFC / Contactless)
+                </span>
+                <GoogleReviewPortraitCard
+                  slug={slug}
+                  businessName={businessName}
+                  brandTag={brandTag}
+                  activationCode={activationCode}
+                  headerSubtitle={subtitle}
+                  headerHeadline={headline}
+                  theme={theme}
+                  showActivationCode={showActivationKey}
+                  scale={1.05}
+                  interactive={true}
+                />
+              </div>
+            </div>
+          ) : (
             <div className="flex flex-col items-center">
-              <span className="text-[11px] font-mono text-slate-500 mb-2 font-bold uppercase tracking-wider">
-                Front (Matte Finish)
+              <span className="text-[11px] font-mono text-slate-500 mb-2 font-bold uppercase tracking-wider no-print">
+                Landscape PVC Layout (85.60 × 53.98 mm)
               </span>
-              <GoogleReviewPortraitCard
-                slug={slug}
+              <PvcCardPreview
                 businessName={businessName}
-                brandTag={brandTag}
-                activationCode={activationCode}
-                headerSubtitle={subtitle}
-                headerHeadline={headline}
-                theme={theme}
-                showActivationCode={showActivationKey}
-                scale={1.1}
-                interactive={true}
+                slug={slug}
+                brandColor={theme === "matte_black" ? "#0d0f12" : (theme === "frost_white" ? "#ffffff" : brandColor)}
               />
             </div>
-          </div>
-        ) : (
-          <div className="flex flex-col items-center">
-            <span className="text-[11px] font-mono text-slate-500 mb-2 font-bold uppercase tracking-wider">
-              Landscape PVC Layout
-            </span>
-            <PvcCardPreview
-              businessName={businessName}
-              slug={slug}
-              brandColor={theme === "matte_black" ? "#0d0f12" : (theme === "frost_white" ? "#ffffff" : brandColor)}
-            />
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       {/* Print Instructions Callout */}
-      <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 flex items-start gap-3 text-xs text-slate-600">
+      <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 flex items-start gap-3 text-xs text-slate-600 no-print">
         <div className="p-2 bg-blue-50 text-blue-600 rounded-lg shrink-0 mt-0.5">
           <Printer className="w-4 h-4" />
         </div>
         <div className="space-y-1">
-          <p className="font-bold text-slate-900">Printing Guidelines for Card Manufacturers</p>
+          <p className="font-bold text-slate-900">Commercial Printing Guidelines for Card Manufacturers</p>
           <p>
             Standard CR80 dimensions: <strong>85.60 mm × 53.98 mm</strong> (3.375 × 2.125 inches) with 3.18 mm corner radius.
-            When printing via browser dialog, set Paper Size to <strong>CR80</strong> or <strong>Borderless</strong> with Scale at <strong>100%</strong>.
+            For direct card printers (Fargo, Zebra, Evolis), use the <strong>300 DPI PNG</strong> or <strong>Vector SVG</strong> export for zero quality loss.
           </p>
         </div>
       </div>

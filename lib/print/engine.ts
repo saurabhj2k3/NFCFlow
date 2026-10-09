@@ -10,9 +10,30 @@ import { getTemplateById } from "@/lib/templates/registry";
 import { updatePrintJob } from "@/lib/db/print-jobs-store";
 import { getCardRedirectUrl } from "@/lib/utils";
 
+import os from "os";
+
 // Unit conversions
 const MM_TO_PT = 72 / 25.4; // 1 mm = 2.83465 PDF points
 const MM_TO_INCH = 1 / 25.4;
+
+export function getExportDirectory(jobId: string): string {
+  try {
+    const localDir = path.join(process.cwd(), "public", "exports", jobId);
+    if (!fs.existsSync(localDir)) {
+      fs.mkdirSync(localDir, { recursive: true });
+    }
+    const testFile = path.join(localDir, `.write_test_${Date.now()}`);
+    fs.writeFileSync(testFile, "test");
+    fs.unlinkSync(testFile);
+    return localDir;
+  } catch {
+    const tmpDir = path.join(os.tmpdir(), "nfcflow_exports", jobId);
+    if (!fs.existsSync(tmpDir)) {
+      fs.mkdirSync(tmpDir, { recursive: true });
+    }
+    return tmpDir;
+  }
+}
 
 export interface ProcessPrintJobOptions {
   job: PrintJob;
@@ -26,10 +47,7 @@ export async function processPrintJob({ job, onProgress }: ProcessPrintJobOption
   const cards: CsvCardRow[] = job.card_data;
   const total = cards.length;
 
-  const exportDir = path.join(process.cwd(), "public", "exports", jobId);
-  if (!fs.existsSync(exportDir)) {
-    fs.mkdirSync(exportDir, { recursive: true });
-  }
+  const exportDir = getExportDirectory(jobId);
 
   updatePrintJob(jobId, { status: "processing", processed_cards: 0, progress_percent: 0 });
 
