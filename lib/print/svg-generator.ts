@@ -16,9 +16,8 @@ function getGoogleTemplateParts(): { beforeQr: string; afterQr: string } {
     return cachedGoogleTemplateParts;
   }
 
-  // Look for the user's template SVG file
+  // Look for the official Google Review template SVG file
   const possiblePaths = [
-    path.join(process.cwd(), "lib", "print", "Review us on (1).svg"),
     path.join(process.cwd(), "public", "templates", "google-review-template.svg"),
   ];
 
