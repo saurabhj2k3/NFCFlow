@@ -141,6 +141,17 @@ export interface RedirectEvent {
   scanned_at: string;
 }
 
+export interface CardDailyAnalytics {
+  card_id: string;
+  business_id?: string;
+  date: string;
+  total_scans: number;
+  nfc_count: number;
+  qr_count: number;
+  iphone_count: number;
+  android_count: number;
+}
+
 export interface AnalyticsSummary {
   total_scans: number;
   today_scans: number;

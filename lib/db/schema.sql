@@ -105,6 +105,19 @@ CREATE TABLE IF NOT EXISTS public.redirect_events (
   scanned_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+-- 9. Daily Analytics Rollup Table (Compact long-term storage preserving total counts)
+CREATE TABLE IF NOT EXISTS public.card_daily_analytics (
+  card_id UUID NOT NULL REFERENCES public.cards(id) ON DELETE CASCADE,
+  business_id UUID REFERENCES public.businesses(id) ON DELETE SET NULL,
+  date DATE NOT NULL,
+  total_scans INT NOT NULL DEFAULT 0,
+  nfc_count INT NOT NULL DEFAULT 0,
+  qr_count INT NOT NULL DEFAULT 0,
+  iphone_count INT NOT NULL DEFAULT 0,
+  android_count INT NOT NULL DEFAULT 0,
+  PRIMARY KEY (card_id, date)
+);
+
 -- Performance Indexes
 CREATE INDEX IF NOT EXISTS idx_cards_slug ON public.cards(slug);
 CREATE INDEX IF NOT EXISTS idx_cards_business ON public.cards(business_id);
@@ -114,6 +127,56 @@ CREATE INDEX IF NOT EXISTS idx_redirect_events_card_id ON public.redirect_events
 CREATE INDEX IF NOT EXISTS idx_redirect_events_business_id ON public.redirect_events(business_id);
 CREATE INDEX IF NOT EXISTS idx_redirect_events_scanned_at ON public.redirect_events(scanned_at DESC);
 CREATE INDEX IF NOT EXISTS idx_redirect_events_source ON public.redirect_events(source);
+CREATE INDEX IF NOT EXISTS idx_card_daily_date ON public.card_daily_analytics(date);
+CREATE INDEX IF NOT EXISTS idx_card_daily_business ON public.card_daily_analytics(business_id);
+
+-- 60-Day Telemetry Rollup & Auto-Purge Procedure (Preserves Total Counts Forever)
+CREATE OR REPLACE FUNCTION public.rollup_and_purge_old_telemetry(retention_days INT DEFAULT 60)
+RETURNS TABLE(purged_raw_logs INT, rolled_up_days INT) AS $$
+DECLARE
+  cutoff_date TIMESTAMPTZ := NOW() - (retention_days || ' days')::INTERVAL;
+  v_purged INT;
+  v_rolled_up INT;
+BEGIN
+  -- Step 1: Aggregate logs older than retention_days into card_daily_analytics
+  WITH aggregated AS (
+    SELECT 
+      card_id,
+      business_id,
+      scanned_at::date AS scan_date,
+      COUNT(*)::INT AS total,
+      COUNT(*) FILTER (WHERE source = 'nfc')::INT AS nfc,
+      COUNT(*) FILTER (WHERE source = 'qr')::INT AS qr,
+      COUNT(*) FILTER (WHERE device_type = 'iphone')::INT AS iphone,
+      COUNT(*) FILTER (WHERE device_type = 'android')::INT AS android
+    FROM public.redirect_events
+    WHERE scanned_at < cutoff_date
+    GROUP BY card_id, business_id, scanned_at::date
+  ),
+  upserted AS (
+    INSERT INTO public.card_daily_analytics (card_id, business_id, date, total_scans, nfc_count, qr_count, iphone_count, android_count)
+    SELECT card_id, business_id, scan_date, total, nfc, qr, iphone, android FROM aggregated
+    ON CONFLICT (card_id, date) DO UPDATE SET
+      total_scans = public.card_daily_analytics.total_scans + EXCLUDED.total_scans,
+      nfc_count = public.card_daily_analytics.nfc_count + EXCLUDED.nfc_count,
+      qr_count = public.card_daily_analytics.qr_count + EXCLUDED.qr_count,
+      iphone_count = public.card_daily_analytics.iphone_count + EXCLUDED.iphone_count,
+      android_count = public.card_daily_analytics.android_count + EXCLUDED.android_count
+    RETURNING 1
+  )
+  SELECT COUNT(*)::INT INTO v_rolled_up FROM upserted;
+
+  -- Step 2: Purge raw event logs older than retention_days
+  WITH deleted AS (
+    DELETE FROM public.redirect_events
+    WHERE scanned_at < cutoff_date
+    RETURNING 1
+  )
+  SELECT COUNT(*)::INT INTO v_purged FROM deleted;
+
+  RETURN QUERY SELECT v_purged, v_rolled_up;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Row Level Security (RLS)
 ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
@@ -123,6 +186,7 @@ ALTER TABLE public.business_users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.cards ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.destination_history ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.redirect_events ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.card_daily_analytics ENABLE ROW LEVEL SECURITY;
 
 -- Public policies
 CREATE POLICY "Public can lookup active cards by slug" 

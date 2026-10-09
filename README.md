@@ -20,6 +20,7 @@
 - **💳 Realistic ISO CR80 PVC Card Studio**: Interactive 85.6 × 54 mm physical card preview with 3D flip animation.
 - **🖨️ Print-Ready Layout & Vector QR Exporter**: Export sharp 1200px PNG and lossless SVG vector QR codes.
 - **📊 Real-Time Analytics & Telemetry**: Privacy-preserving scan metrics (NFC vs QR breakdown, device OS breakdown, and 14-day scan velocity).
+- **♻️ 60-Day Smart Retention & Daily Rollups**: Automatically aggregates raw individual tap events older than 60 days into lightweight daily summaries (`card_daily_analytics`), preserving all-time scan totals forever while keeping database storage well within free-tier limits.
 - **🗄️ Dual-Mode Database Engine**: High-performance Supabase PostgreSQL cloud sync with built-in zero-config local JSON persistence fallback.
 - **🔐 Multi-Location & Role Simulator**: Manage multiple branch stores with dedicated Super Admin, Business Owner, and Manager roles.
 

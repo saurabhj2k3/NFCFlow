@@ -1,4 +1,4 @@
-import { AnalyticsSummary, BatchStatus, Business, Card, CardBatch, CardPurpose, DestinationType, InventoryStatus, RedirectEvent, User } from "@/types";
+import { AnalyticsSummary, BatchStatus, Business, Card, CardBatch, CardDailyAnalytics, CardPurpose, DestinationType, InventoryStatus, RedirectEvent, User } from "@/types";
 import { INITIAL_BATCHES, INITIAL_BUSINESSES, INITIAL_CARDS, INITIAL_USERS, generateSeedScanEvents } from "@/lib/mock-data";
 import { getActiveSupabaseClient, isSupabaseConfigured } from "@/lib/db/supabase";
 import fs from "fs";
@@ -18,6 +18,7 @@ interface DbData {
   cards: Card[];
   batches: CardBatch[];
   events: RedirectEvent[];
+  daily_analytics?: CardDailyAnalytics[];
 }
 
 let inMemoryDb: DbData | null = null;
@@ -56,6 +57,7 @@ function loadDb(): DbData {
           cards: parsed.cards || [],
           batches: parsed.batches || [],
           events: parsed.events || [],
+          daily_analytics: parsed.daily_analytics || [],
         };
         return inMemoryDb;
       }
@@ -77,6 +79,7 @@ function loadDb(): DbData {
           cards: parsed.cards || [],
           batches: parsed.batches || [],
           events: parsed.events || [],
+          daily_analytics: parsed.daily_analytics || [],
         };
         return inMemoryDb;
       }
@@ -95,6 +98,7 @@ function loadDb(): DbData {
     cards: [],
     batches: [],
     events: [],
+    daily_analytics: [],
   };
 
   saveDb();
@@ -1475,12 +1479,136 @@ export async function getScanEvents(params?: {
   return events;
 }
 
-// ==========================================
-// ANALYTICS AGGREGATIONS
-// ==========================================
+export async function getDailyAnalytics(params?: {
+  business_id?: string;
+  card_id?: string;
+}): Promise<CardDailyAnalytics[]> {
+  const db = loadDb();
+  let rollups: CardDailyAnalytics[] = [...(db.daily_analytics || [])];
+
+  if (isSupabaseConfigured) {
+    const client = getActiveSupabaseClient();
+    if (client) {
+      try {
+        let query = client.from("card_daily_analytics").select("*");
+        if (params?.business_id && params.business_id !== "all") {
+          query = query.eq("business_id", params.business_id);
+        }
+        if (params?.card_id && params.card_id !== "all") {
+          query = query.eq("card_id", params.card_id);
+        }
+        const { data, error } = await query;
+        if (!error && data) {
+          rollups = data as CardDailyAnalytics[];
+        }
+      } catch (err) {
+        console.warn("Supabase getDailyAnalytics note:", err);
+      }
+    }
+  }
+
+  if (params?.business_id && params.business_id !== "all") {
+    rollups = rollups.filter((r) => r.business_id === params.business_id);
+  }
+
+  if (params?.card_id && params.card_id !== "all") {
+    rollups = rollups.filter((r) => r.card_id === params.card_id);
+  }
+
+  return rollups;
+}
+
+export async function rollupAndPurgeOldTelemetry(retentionDays: number = 60): Promise<{
+  purgedLogs: number;
+  rolledUpDays: number;
+  message: string;
+}> {
+  const cutoffMs = Date.now() - retentionDays * 86400000;
+  let purgedCount = 0;
+  let rolledUpCount = 0;
+
+  // 1. Local / In-memory store rollup & purge
+  const db = loadDb();
+  if (!db.daily_analytics) db.daily_analytics = [];
+
+  const oldEvents = db.events.filter((ev) => new Date(ev.scanned_at).getTime() < cutoffMs);
+  const recentEvents = db.events.filter((ev) => new Date(ev.scanned_at).getTime() >= cutoffMs);
+
+  if (oldEvents.length > 0) {
+    purgedCount = oldEvents.length;
+    // Group old events by card_id and date
+    const rollupMap: { [key: string]: CardDailyAnalytics } = {};
+    for (const ev of oldEvents) {
+      const dateKey = ev.scanned_at.split("T")[0];
+      const comboKey = `${ev.card_id}_${dateKey}`;
+
+      if (!rollupMap[comboKey]) {
+        rollupMap[comboKey] = {
+          card_id: ev.card_id,
+          business_id: ev.business_id,
+          date: dateKey,
+          total_scans: 0,
+          nfc_count: 0,
+          qr_count: 0,
+          iphone_count: 0,
+          android_count: 0,
+        };
+      }
+
+      rollupMap[comboKey].total_scans++;
+      if (ev.source === "nfc") rollupMap[comboKey].nfc_count++;
+      if (ev.source === "qr") rollupMap[comboKey].qr_count++;
+      if (ev.device_type === "iphone" || ev.device_type === "tablet") rollupMap[comboKey].iphone_count++;
+      if (ev.device_type === "android") rollupMap[comboKey].android_count++;
+    }
+
+    // Merge into db.daily_analytics
+    for (const item of Object.values(rollupMap)) {
+      const existingIdx = db.daily_analytics.findIndex((d) => d.card_id === item.card_id && d.date === item.date);
+      if (existingIdx >= 0) {
+        db.daily_analytics[existingIdx].total_scans += item.total_scans;
+        db.daily_analytics[existingIdx].nfc_count += item.nfc_count;
+        db.daily_analytics[existingIdx].qr_count += item.qr_count;
+        db.daily_analytics[existingIdx].iphone_count += item.iphone_count;
+        db.daily_analytics[existingIdx].android_count += item.android_count;
+      } else {
+        db.daily_analytics.push(item);
+      }
+      rolledUpCount++;
+    }
+
+    db.events = recentEvents;
+    saveDb();
+  }
+
+  // 2. Supabase PostgreSQL automated rollup & purge
+  if (isSupabaseConfigured) {
+    const client = getActiveSupabaseClient();
+    if (client) {
+      try {
+        const { data, error } = await client.rpc("rollup_and_purge_old_telemetry", {
+          retention_days: retentionDays,
+        });
+        if (!error && data && data.length > 0) {
+          purgedCount = data[0].purged_raw_logs ?? purgedCount;
+          rolledUpCount = data[0].rolled_up_days ?? rolledUpCount;
+        }
+      } catch (err) {
+        console.warn("Supabase rollup_and_purge_old_telemetry note:", err);
+      }
+    }
+  }
+
+  return {
+    purgedLogs: purgedCount,
+    rolledUpDays: rolledUpCount,
+    message: `Telemetry older than ${retentionDays} days successfully aggregated into daily counts and purged.`,
+  };
+}
 
 export async function getAnalyticsSummary(businessId?: string, cardId?: string): Promise<AnalyticsSummary> {
   const events = await getScanEvents({ business_id: businessId, card_id: cardId });
+  const historicalRollups = await getDailyAnalytics({ business_id: businessId, card_id: cardId });
 
   const now = new Date();
   const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
@@ -1508,6 +1636,7 @@ export async function getAnalyticsSummary(businessId?: string, cardId?: string):
     dailyMap[key] = { total: 0, nfc: 0, qr: 0 };
   }
 
+  // 1. Process active raw events
   events.forEach((ev) => {
     const scanTime = new Date(ev.scanned_at).getTime();
 
@@ -1533,6 +1662,22 @@ export async function getAnalyticsSummary(businessId?: string, cardId?: string):
     }
   });
 
+  // 2. Add historical daily rollup totals (so total count is preserved for all time)
+  let historicalTotal = 0;
+  historicalRollups.forEach((rollup) => {
+    historicalTotal += rollup.total_scans;
+    nfcScans += rollup.nfc_count;
+    qrScans += rollup.qr_count;
+    deviceBreakdown.iphone += rollup.iphone_count;
+    deviceBreakdown.android += rollup.android_count;
+
+    if (dailyMap[rollup.date]) {
+      dailyMap[rollup.date].total += rollup.total_scans;
+      dailyMap[rollup.date].nfc += rollup.nfc_count;
+      dailyMap[rollup.date].qr += rollup.qr_count;
+    }
+  });
+
   const daily_trends = Object.entries(dailyMap).map(([date, counts]) => ({
     date,
     total: counts.total,
@@ -1541,7 +1686,7 @@ export async function getAnalyticsSummary(businessId?: string, cardId?: string):
   }));
 
   return {
-    total_scans: events.length,
+    total_scans: events.length + historicalTotal,
     today_scans: todayScans,
     week_scans: weekScans,
     month_scans: monthScans,
