@@ -1260,6 +1260,11 @@ export async function verifyCardManagementAuth(
   card?: Card;
   business?: Business;
   scanCount?: number;
+  nfcCount?: number;
+  qrCount?: number;
+  iphoneCount?: number;
+  androidCount?: number;
+  recentEvents?: RedirectEvent[];
   message?: string;
   not_activated?: boolean;
 }> {
