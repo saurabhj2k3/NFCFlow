@@ -3,5 +3,17 @@
   "businesses": [],
   "cards": [],
   "batches": [],
-  "events": []
+  "events": [
+    {
+      "card_id": "ad47671a-d6e6-4ccd-ae82-71739c98f5fd",
+      "slug": "GR002",
+      "business_id": "f761b2ef-4ecf-4768-8ceb-0456ed822f2a",
+      "source": "direct",
+      "device_type": "desktop",
+      "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/154.0.0.0 Safari/537.36",
+      "scanned_at": "2026-10-09T15:46:28.445Z",
+      "id": "8213d6e6-7b61-42ca-8821-36765ad75644"
+    }
+  ],
+  "daily_analytics": []
 }

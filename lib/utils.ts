@@ -53,7 +53,7 @@ export function formatDateTime(dateString: string): string {
 }
 
 /**
- * Get base app URL for main website and landing pages (e.g. https://nfcflow.in)
+ * Get base app URL for main website and landing pages (e.g. https://www.nfcflow.in)
  */
 export function getBaseUrl(): string {
   if (process.env.NEXT_PUBLIC_APP_URL) {
@@ -65,22 +65,22 @@ export function getBaseUrl(): string {
   if (process.env.VERCEL_URL) {
     return `https://${process.env.VERCEL_URL}`;
   }
-  return "https://nfcflow.in";
+  return "https://www.nfcflow.in";
 }
 
 /**
  * Get base URL specifically for physical NFC cards and QR code redirects
- * Points to https://nfcflow.in or NEXT_PUBLIC_CARD_BASE_URL
+ * Points to https://www.nfcflow.in or NEXT_PUBLIC_CARD_BASE_URL
  */
 export function getCardBaseUrl(): string {
   if (process.env.NEXT_PUBLIC_CARD_BASE_URL) {
     return process.env.NEXT_PUBLIC_CARD_BASE_URL.replace(/\/$/, "");
   }
-  return "https://nfcflow.in";
+  return "https://www.nfcflow.in";
 }
 
 /**
- * Construct public redirect URL for a smart card (e.g. https://nfcflow.in/r/WD0100)
+ * Construct public redirect URL for a smart card (e.g. https://www.nfcflow.in/r/WD0100)
  */
 export function getCardRedirectUrl(slug: string, source?: "nfc" | "qr"): string {
   const base = getCardBaseUrl();

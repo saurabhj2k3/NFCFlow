@@ -25,7 +25,7 @@ export interface GoogleReviewCardExactProps {
 
 export function GoogleReviewCardExact({
   cardId = "GR001",
-  qrUrl = "https://nfcflow.in/r/GR001",
+  qrUrl = "https://www.nfcflow.in/r/GR001",
   template,
   scale = 1,
   showCutGuides = false,

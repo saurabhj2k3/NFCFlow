@@ -35,7 +35,7 @@ export default function HardwareGuidePage() {
               NXP NTAG213 PVC Smart Cards
             </h2>
             <p className="text-xs text-slate-600 max-w-2xl leading-relaxed">
-              Genuine NXP NTAG213 chips are the standard for contactless customer review cards. They provide 144 bytes of usable memory (ideal for short permanent URLs like <code className="text-slate-800 bg-slate-100 px-1 py-0.5 rounded font-mono">https://nfcflow.in/r/X7k29P</code>) and native background NFC reading on iOS (iPhone 7+) and Android.
+              Genuine NXP NTAG213 chips are the standard for contactless customer review cards. They provide 144 bytes of usable memory (ideal for short permanent URLs like <code className="text-slate-800 bg-slate-100 px-1 py-0.5 rounded font-mono">https://www.nfcflow.in/r/X7k29P</code>) and native background NFC reading on iOS (iPhone 7+) and Android.
             </p>
           </div>
 
@@ -130,7 +130,7 @@ export default function HardwareGuidePage() {
             },
             {
               step: "3. Write NFC Chip",
-              desc: "Write URL (https://nfcflow.in/r/X7k29P?source=nfc) using NFC Tools app.",
+              desc: "Write URL (https://www.nfcflow.in/r/X7k29P?source=nfc) using NFC Tools app.",
             },
             {
               step: "4. Test & Deploy",
